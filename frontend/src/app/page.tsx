@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { redirect } from "next/navigation";
 
 // Root page redirects to the citizen portal
