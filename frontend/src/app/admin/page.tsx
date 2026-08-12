@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -64,13 +65,13 @@ export default function AdminPage() {
         }, 4000);
       }
       // Refresh stats on any new submission
-      getStats().then(setStats).catch(() => {});
+      getStats().then(setStats).catch(() => { });
     }
 
     if (event.event === "grievance_resolved") {
       const updated = event.data as unknown as GrievancePublic;
       setTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-      getStats().then(setStats).catch(() => {});
+      getStats().then(setStats).catch(() => { });
     }
   }, []);
 
@@ -80,7 +81,7 @@ export default function AdminPage() {
   function handleResolved(updated: GrievancePublic) {
     setTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
     setStats(null); // Trigger re-fetch
-    getStats().then(setStats).catch(() => {});
+    getStats().then(setStats).catch(() => { });
   }
 
   return (
