@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = 'force-dynamic';
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
@@ -65,7 +66,7 @@ export default function CitizenPage() {
     if (activeTab === "tickets") {
       loadMyTickets();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   async function loadMyTickets() {
@@ -300,8 +301,8 @@ export default function CitizenPage() {
                   {locationStatus === "detecting"
                     ? t.formDetectingLocation
                     : locationStatus === "ok"
-                    ? `${latitude?.toFixed(4)}, ${longitude?.toFixed(4)}`
-                    : t.formDetectLocation}
+                      ? `${latitude?.toFixed(4)}, ${longitude?.toFixed(4)}`
+                      : t.formDetectLocation}
                 </button>
               </div>
               {locationStatus === "denied" && (
