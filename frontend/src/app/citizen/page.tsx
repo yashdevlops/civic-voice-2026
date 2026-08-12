@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = 'force-dynamic';
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   MapPin, Send, Loader2, CheckCircle2, AlertCircle,
@@ -27,7 +27,7 @@ interface Toast {
   message: string;
 }
 
-export default function CitizenPage() {
+function CitizenContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>("submit");
@@ -431,5 +431,12 @@ export default function CitizenPage() {
         ))}
       </div>
     </div>
+  );
+}
+export default function CitizenPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading portal...</div>}>
+      <CitizenContent />
+    </Suspense>
   );
 }
