@@ -87,6 +87,9 @@ export interface StatsOut {
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000",
   timeout: 30_000,
+  headers: {
+    "Bypass-Tunnel-Reminder": "true",
+  },
 });
 
 // Response interceptor: log errors in development
