@@ -1,0 +1,31 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Environment secrets (never commit)
+.env
+
+# Database file (use migrations in production)
+civic_grievance.db
+
+# ChromaDB persisted vector store (rebuild via seed_demo.py)
+chroma_store/
+
+# Uploaded files (not source-controlled; back up separately in production)
+uploads/*
+!uploads/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+backend/venv/
+__pycache__/
+
+# Next.js & Build outputs
+.next/
+dist/
+*.db
+*.db-shm
+*.db-wal
+
+# Environment files
+.env
+.env.local
+*.env
