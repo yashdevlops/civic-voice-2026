@@ -30,53 +30,23 @@ export default function AdminPage() {
     setError(null);
     try {
       const [ticketData, statsData] = await Promise.all([
-        getPublicGrievances(),
-        getStats(),
+        getPublicGrievances().catch((err) => {
+          console.error("Grievances fetch failed:", err);
+          return []; // Fallback empty array so it doesn't freeze loading
+        }),
+        getStats().catch((err) => {
+          console.error("Stats fetch failed:", err);
+          return null; // Fallback null so it doesn't freeze loading
+        }),
       ]);
-      setTickets(ticketData);
+
+      setTickets(ticketData || []);
       setStats(statsData);
-    } catch (err) {
-      console.warn("API request failed, loading fallback seed data:", err);
-      setError(null);
-
-      const mockTickets: any[] = [
-        {
-          id: "TCK-1001",
-          tracking_id: "GRV-2026-001",
-          title: "Severe Road Pothole on Main Street",
-          description: "Large road hazard creating traffic delays.",
-          category: "ROADS",
-          status: "OPEN",
-          priority: 4,
-          created_at: new Date().toISOString(),
-          latitude: 20.2961,
-          longitude: 85.8245,
-        },
-        {
-          id: "TCK-1002",
-          tracking_id: "GRV-2026-002",
-          title: "Streetlight outage near Ward 4",
-          description: "Dark street section poses safety concern.",
-          category: "ELECTRICAL",
-          status: "IN_PROGRESS",
-          priority: 3,
-          created_at: new Date().toISOString(),
-          latitude: 20.2980,
-          longitude: 85.8260,
-        },
-      ];
-
-      setTickets(mockTickets as GrievancePublic[]);
-      setStats({
-        total_tickets: 2,
-        open_tickets: 1,
-        resolved_tickets: 0,
-        in_progress_tickets: 1,
-        critical_tickets: 1,
-        category_breakdown: { ROADS: 1, ELECTRICAL: 1 },
-      } as any);
+    } catch (err: any) {
+      console.error("Unexpected error in loadData:", err);
+      setError("Failed to load admin data.");
     } finally {
-      setLoading(false);
+      setLoading(false); // Guarantee loading stops no matter what
     }
   }
   // ── WebSocket live updates ─────────────────────────────────────────────
