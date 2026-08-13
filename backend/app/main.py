@@ -94,20 +94,24 @@ def startup_event() -> None:
     # Create DB tables and seed demo data
     init_db()
     try:
+        import sys
         from app.database import SessionLocal
         import app.seed_demo as seed_demo
-
-        db = SessionLocal()
+        
+        # Safely clear sys.argv so argparse in seed_demo doesn't inspect uvicorn arguments
+        original_argv = sys.argv
+        sys.argv = [sys.argv[0]]
         try:
             if hasattr(seed_demo, "seed_data"):
-                seed_demo.seed_data(db)
-            elif hasattr(seed_demo, "main"):
+                db = SessionLocal()
                 try:
-                    seed_demo.main([])
-                except TypeError:
-                    pass
+                    seed_demo.seed_data(db)
+                finally:
+                    db.close()
+            elif hasattr(seed_demo, "main"):
+                seed_demo.main()
         finally:
-            db.close()
+            sys.argv = original_argv
     except Exception as e:
         logger.warning("Seeding skipped or error: %s", e)
     logger.info("Database initialised. Upload dir: %s", settings.upload_dir)
