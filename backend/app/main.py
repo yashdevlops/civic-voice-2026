@@ -92,7 +92,13 @@ def startup_event() -> None:
     # Ensure upload directory exists
     Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
     # Create DB tables
+    # Create DB tables and seed demo data
     init_db()
+    try:
+        from app.seed_demo import main as seed_main
+        seed_main()
+    except Exception as e:
+        logger.warning("Seeding skipped or error: %s", e)
     logger.info("Database initialised. Upload dir: %s", settings.upload_dir)
 
 
