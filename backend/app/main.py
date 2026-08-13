@@ -105,7 +105,7 @@ def startup_event() -> None:
                 try:
                     seed_demo.main([])
                 except TypeError:
-                    seed_demo.main()
+                    pass
         finally:
             db.close()
     except Exception as e:
