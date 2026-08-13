@@ -6,9 +6,6 @@ __pycache__/
 # Next.js & Build outputs
 .next/
 dist/
-*.db
-*.db-shm
-*.db-wal
 
 # Environment files
 .env

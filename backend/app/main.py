@@ -86,34 +86,13 @@ app.add_middleware(
 
 
 # ── Startup ───────────────────────────────────────────────────────────────────
-
 @app.on_event("startup")
 def startup_event() -> None:
     # Ensure upload directory exists
     Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
-    # Create DB tables and seed demo data
+    
+    # Initialize DB tables cleanly without blocking calls
     init_db()
-    try:
-        import sys
-        from app.database import SessionLocal
-        import app.seed_demo as seed_demo
-        
-        # Safely clear sys.argv so argparse in seed_demo doesn't inspect uvicorn arguments
-        original_argv = sys.argv
-        sys.argv = [sys.argv[0]]
-        try:
-            if hasattr(seed_demo, "seed_data"):
-                db = SessionLocal()
-                try:
-                    seed_demo.seed_data(db)
-                finally:
-                    db.close()
-            elif hasattr(seed_demo, "main"):
-                seed_demo.main()
-        finally:
-            sys.argv = original_argv
-    except Exception as e:
-        logger.warning("Seeding skipped or error: %s", e)
     logger.info("Database initialised. Upload dir: %s", settings.upload_dir)
 
 
