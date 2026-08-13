@@ -91,22 +91,26 @@ app.add_middleware(
 def startup_event() -> None:
     # Ensure upload directory exists
     Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
-   # Create DB tables and seed demo data
     # Create DB tables and seed demo data
     init_db()
     try:
-        from app.seed_demo import seed_users, seed_grievances, seed_budget_proposals
         from app.database import SessionLocal
-        
+        import app.seed_demo as seed_demo
+
         db = SessionLocal()
         try:
-            seed_users(db)
-            seed_grievances(db)
-            seed_budget_proposals(db)
+            if hasattr(seed_demo, "seed_data"):
+                seed_demo.seed_data(db)
+            elif hasattr(seed_demo, "main"):
+                try:
+                    seed_demo.main([])
+                except TypeError:
+                    seed_demo.main()
         finally:
             db.close()
     except Exception as e:
         logger.warning("Seeding skipped or error: %s", e)
+    logger.info("Database initialised. Upload dir: %s", settings.upload_dir)
 
 
 # ── Static file serving ───────────────────────────────────────────────────────
