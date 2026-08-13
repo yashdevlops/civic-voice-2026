@@ -78,7 +78,10 @@ app = FastAPI(
 # CORS – allow all origins for tunnel/demo access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://soa-ideathon-s36-civic-iqa4.vercel.app",
+        "http://localhost:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
