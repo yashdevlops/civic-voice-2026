@@ -75,9 +75,10 @@ app = FastAPI(
 )
 
 # CORS — allow the Next.js dev server (and any additional configured origins)
+# CORS – allow all origins for tunnel/demo access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
