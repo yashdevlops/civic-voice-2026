@@ -5,7 +5,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Send, Loader2, CheckCircle2, AlertCircle,
-  PlusCircle, List, MapPin, Camera, User, Phone, Mail, Clock, ArrowLeft
+  PlusCircle, List, User, Phone, Mail, ArrowLeft
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -14,123 +14,19 @@ import Link from "next/link";
 import {
   GrievanceTicket,
   IssueCategory,
-  IssueStatus,
   IssuePriority,
   CATEGORY_OPTIONS
 } from "@/lib/grievance";
 import {
-  getGrievances,
+  getGrievancesByCitizenEmail,
   addGrievance,
+  upvoteGrievance,
   migrateLegacyGrievanceData,
   GRIEVANCE_SYNC_EVENT
 } from "@/lib/grievanceStore";
+import ComplaintCard from "@/components/citizen/ComplaintCard";
 
 type Tab = "submit" | "tickets";
-
-// ── Status badge renderer ───────────────────────────────────────────────────
-function TicketStatusBadge({ status }: { status: IssueStatus }) {
-  let colorClass = "bg-slate-100 text-slate-600 border border-slate-200";
-  if (status === "Resolved") {
-    colorClass = "bg-green-50 text-green-700 border border-green-200";
-  } else if (status === "In Progress") {
-    colorClass = "bg-amber-50 text-amber-700 border border-amber-200";
-  } else if (status === "Under Review") {
-    colorClass = "bg-blue-50 text-blue-700 border border-blue-200";
-  } else if (status === "Rejected") {
-    colorClass = "bg-red-50 text-red-700 border border-red-200";
-  }
-
-  return (
-    <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded border shrink-0", colorClass)}>
-      {status}
-    </span>
-  );
-}
-
-// ── Single Ticket card renderer ──────────────────────────────────────────────
-function CitizenTicketCard({ ticket }: { ticket: GrievanceTicket }) {
-  const getPriorityBadge = (priority: IssuePriority) => {
-    switch (priority) {
-      case "Critical": return "bg-red-50 text-red-700 border-red-100";
-      case "High": return "bg-orange-50 text-orange-700 border-orange-100";
-      case "Medium": return "bg-amber-50 text-amber-700 border-amber-100";
-      default: return "bg-slate-50 text-slate-600 border-slate-100";
-    }
-  };
-
-  return (
-    <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-3.5 text-xs font-semibold text-slate-600">
-      
-      <div className="flex justify-between items-start">
-        <div className="space-y-0.5">
-          <span className="font-mono font-bold text-slate-400 tracking-wider text-[10px]">{ticket.id}</span>
-          <p className="text-[10px] text-slate-400 font-medium leading-none">
-            Submitted on {new Date(ticket.createdAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={cn("inline-block border px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wide", getPriorityBadge(ticket.priority))}>
-            {ticket.priority}
-          </span>
-          <TicketStatusBadge status={ticket.status} />
-        </div>
-      </div>
-
-      <div className="space-y-1">
-        <h3 className="font-extrabold text-slate-800 text-sm leading-snug">
-          {ticket.title}
-        </h3>
-        <p className="text-slate-500 font-medium leading-relaxed whitespace-pre-wrap">
-          {ticket.description}
-        </p>
-      </div>
-
-      {ticket.imageUrl && (
-        <div className="relative rounded-xl overflow-hidden border border-slate-100 max-h-[140px] flex items-center justify-center bg-slate-50">
-          <img src={ticket.imageUrl} alt="Attached evidence" className="max-h-[140px] w-auto object-contain" />
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 rounded-xl p-3 border border-slate-100/60 font-semibold text-slate-500">
-        <div className="flex items-start gap-1.5">
-          <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-slate-700">{ticket.location}</p>
-            {ticket.landmark && <p className="text-[10px] text-slate-400 font-medium">Landmark: {ticket.landmark}</p>}
-          </div>
-        </div>
-        <div className="flex flex-col justify-center border-l-0 sm:border-l border-slate-200/60 pl-0 sm:pl-3 space-y-0.5">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wide font-extrabold">Department</p>
-          <p className="text-slate-700 font-bold">{ticket.department}</p>
-        </div>
-      </div>
-
-      {/* Admin update logs */}
-      {ticket.adminNotes && ticket.adminNotes.length > 0 && (
-        <div className="border-t border-slate-100 pt-3 space-y-2">
-          <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Updates & Progress History</p>
-          <div className="relative pl-4 border-l border-slate-200 space-y-3.5 ml-1.5">
-            {ticket.adminNotes.slice().sort((a,b) => new Date(a.changedAt).getTime() - new Date(b.changedAt).getTime()).map((note, index) => (
-              <div key={index} className="space-y-1">
-                <div className="flex flex-wrap items-center gap-x-2 text-[9px] text-slate-400">
-                  <span className="font-extrabold text-slate-700 uppercase tracking-wider">{note.status}</span>
-                  <span>·</span>
-                  <span>{new Date(note.changedAt).toLocaleString()}</span>
-                </div>
-                {note.note && (
-                  <p className="bg-slate-50 border border-slate-100 rounded-lg p-2 text-slate-600 font-medium leading-relaxed">
-                    {note.note}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
-}
 
 function CitizenContent() {
   const { t } = useI18n();
@@ -153,12 +49,19 @@ function CitizenContent() {
   const [submitting, setSubmitting] = useState(false);
   const [successTicketId, setSuccessTicketId] = useState<string | null>(null);
 
-  // Auto-run migrations + load store
+  // Derive citizen info from context
+  const citizenEmail = user?.email || "guest@civicvoice.gov.in";
+  const citizenName = user?.name || "Guest Citizen";
+  const citizenPhone = user?.phone || undefined;
+
+  // Auto-run migrations + load store with Sync hook (§8 pattern)
   useEffect(() => {
     migrateLegacyGrievanceData();
-    setTickets(getGrievances());
+    setTickets(getGrievancesByCitizenEmail(citizenEmail));
 
-    const refresh = () => setTickets(getGrievances());
+    const refresh = () => {
+      setTickets(getGrievancesByCitizenEmail(citizenEmail));
+    };
     window.addEventListener(GRIEVANCE_SYNC_EVENT, refresh);
     window.addEventListener("storage", refresh); // tab-sync
 
@@ -166,7 +69,7 @@ function CitizenContent() {
       window.removeEventListener(GRIEVANCE_SYNC_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
-  }, []);
+  }, [citizenEmail]);
 
   useEffect(() => {
     if (searchParams.get("ticket")) {
@@ -174,15 +77,8 @@ function CitizenContent() {
     }
   }, [searchParams]);
 
-  // Derive citizen info from context
-  const citizenEmail = user?.email || "guest@civicvoice.gov.in";
-  const citizenName = user?.name || "Guest Citizen";
-  const citizenPhone = user?.phone || undefined;
-
-  // Filter local tickets by this citizen's email
-  const myTicketsList = tickets.filter(
-    (t) => t.citizenEmail.toLowerCase().trim() === citizenEmail.toLowerCase().trim()
-  );
+  // Log debug count
+  console.log("[citizen] my tickets count:", tickets.length);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,6 +119,10 @@ function CitizenContent() {
     }
   };
 
+  const handleUpvote = (id: string) => {
+    upvoteGrievance(id);
+  };
+
   return (
     <div className="min-h-screen pt-16 font-sans" style={{ backgroundColor: "var(--color-bg)" }}>
       {/* Page Header */}
@@ -259,9 +159,9 @@ function CitizenContent() {
               style={{ borderRadius: "calc(var(--radius-control) - 2px)" }}>
               <List className="h-4 w-4" />
               {t.tabMyTickets}
-              {myTicketsList.length > 0 && (
+              {tickets.length > 0 && (
                 <span className="ml-1 text-[10px] font-bold bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full leading-none">
-                  {myTicketsList.length}
+                  {tickets.length}
                 </span>
               )}
             </button>
@@ -292,21 +192,24 @@ function CitizenContent() {
                 <div className="pt-2">
                   <button
                     type="button"
-                    onClick={() => setSuccessTicketId(null)}
+                    onClick={() => {
+                      setSuccessTicketId(null);
+                      setActiveTab("tickets");
+                    }}
                     className="btn-primary px-4 py-2 mx-auto justify-center"
                   >
-                    File Another Complaint
+                    View My Tickets
                   </button>
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-5 text-xs font-semibold text-slate-650 text-slate-600">
+              <form onSubmit={handleSubmit} className="space-y-5 text-xs font-semibold text-slate-600">
                 
                 {/* Auto-filled details info warning */}
                 <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 flex items-start gap-2.5">
                   <User className="h-4.5 w-4.5 text-slate-400 mt-0.5 shrink-0" />
                   <div className="space-y-1">
-                    <p className="text-slate-750 text-slate-800 font-bold">Filing as: {citizenName}</p>
+                    <p className="text-slate-800 font-bold">Filing as: {citizenName}</p>
                     <div className="flex flex-wrap items-center gap-x-2 text-[10px] text-slate-400 font-medium">
                       <span className="flex items-center gap-0.5"><Mail className="h-3 w-3" />{citizenEmail}</span>
                       {citizenPhone && <span className="flex items-center gap-0.5"><Phone className="h-3 w-3" />{citizenPhone}</span>}
@@ -323,8 +226,8 @@ function CitizenContent() {
                     id="form-title"
                     type="text"
                     required
-                    className="civic-input px-3"
-                    placeholder="e.g. Broken street light near Jayanagar Park"
+                    className="civic-input px-4"
+                    placeholder="e.g. Broken streetlight near Jayanagar Park"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                   />
@@ -393,7 +296,7 @@ function CitizenContent() {
                     id="form-location"
                     type="text"
                     required
-                    className="civic-input px-3"
+                    className="civic-input px-4"
                     placeholder="e.g. 3rd Cross, Jayanagar, Bengaluru"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
@@ -409,7 +312,7 @@ function CitizenContent() {
                     <input
                       id="form-landmark"
                       type="text"
-                      className="civic-input px-3"
+                      className="civic-input px-4"
                       placeholder="e.g. near Metro Pillar 42"
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}
@@ -423,7 +326,7 @@ function CitizenContent() {
                     <input
                       id="form-image"
                       type="url"
-                      className="civic-input px-3"
+                      className="civic-input px-4"
                       placeholder="https://example.com/pothole.jpg"
                       value={imageUrl}
                       onChange={(e) => setImageUrl(e.target.value)}
@@ -434,7 +337,7 @@ function CitizenContent() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn-primary w-full justify-center py-3 text-base"
+                  className="btn-primary w-full justify-center py-3 text-base cursor-pointer"
                 >
                   {submitting ? (
                     <>
@@ -456,13 +359,13 @@ function CitizenContent() {
         {/* ── My Tickets Tab ─────────────────────────────────────────────── */}
         {activeTab === "tickets" && (
           <div className="space-y-4">
-            {myTicketsList.length === 0 ? (
+            {tickets.length === 0 ? (
               <div className="text-center py-16 text-slate-400 bg-white border border-slate-100 rounded-2xl shadow-sm">
                 <List className="h-10 w-10 mx-auto mb-3 opacity-30" />
                 <p className="text-sm font-semibold">{t.noData}</p>
                 <button
                   onClick={() => setActiveTab("submit")}
-                  className="mt-4 btn-primary mx-auto"
+                  className="mt-4 btn-primary mx-auto cursor-pointer"
                 >
                   <PlusCircle className="h-4 w-4" />
                   <span>{t.tabSubmit}</span>
@@ -470,8 +373,12 @@ function CitizenContent() {
               </div>
             ) : (
               <div className="space-y-4">
-                {myTicketsList.map((ticket) => (
-                  <CitizenTicketCard key={ticket.id} ticket={ticket} />
+                {tickets.map((ticket) => (
+                  <ComplaintCard 
+                    key={ticket.id} 
+                    ticket={ticket} 
+                    onUpvote={() => handleUpvote(ticket.id)}
+                  />
                 ))}
               </div>
             )}

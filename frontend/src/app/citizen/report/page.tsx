@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Send, CheckCircle2, Loader2, Info } from "lucide-react";
 import Logo from "@/components/Logo";
 import { addGrievance } from "@/lib/grievanceStore";
-import { IssueCategory, IssuePriority } from "@/lib/grievance";
+import { IssueCategory, IssuePriority, CATEGORY_OPTIONS } from "@/lib/grievance";
 
 function CitizenReportForm() {
   // Form input states
@@ -231,13 +231,11 @@ function CitizenReportForm() {
                       value={category}
                       onChange={(e) => setCategory(e.target.value as IssueCategory)}
                     >
-                      <option value="Roads & Potholes">Roads & Potholes</option>
-                      <option value="Sanitation & Waste">Sanitation & Waste</option>
-                      <option value="Water Supply">Water Supply</option>
-                      <option value="Streetlights & Electricity">Streetlights & Electricity</option>
-                      <option value="Public Safety">Public Safety</option>
-                      <option value="Parks & Recreation">Parks & Recreation</option>
-                      <option value="Other">Other</option>
+                      {CATEGORY_OPTIONS.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

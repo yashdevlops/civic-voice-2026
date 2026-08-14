@@ -1,323 +1,214 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import {
-  Search, Filter, ArrowUpDown, ChevronRight, Plus,
-  MapPin, ChevronLeft, Calendar, Clock, WifiOff, AlertCircle, ThumbsUp
-} from "lucide-react";
-import { MOCK_COMPLAINTS } from "@/lib/mock-data";
-import StatusBadge from "@/components/StatusBadge";
+import { Search, Filter, ArrowUpDown, Plus, WifiOff, AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { loadQueue, type PendingSubmission } from "@/lib/offline-queue";
-import { loadUserTickets, type LocalTicket } from "@/lib/user-tickets";
-import { useLiveTimestamp } from "@/lib/useLiveTimestamp";
+import { useAuth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import {
+  GrievanceTicket,
+  IssueStatus
+} from "@/lib/grievance";
+import {
+  getGrievancesByCitizenEmail,
+  upvoteGrievance,
+  migrateLegacyGrievanceData,
+  GRIEVANCE_SYNC_EVENT,
+  GRIEVANCE_STORE_KEY
+} from "@/lib/grievanceStore";
+import ComplaintCard from "@/components/citizen/ComplaintCard";
 
-// ── Pending complaint row ─────────────────────────────────────────────────────
+type SortOption = "newest" | "oldest" | "upvotes";
 
-function PendingRow({ item }: { item: PendingSubmission }) {
-  const isGivenUp = item.status === "failed";
-  const label = item.payload.title || item.payload.description.slice(0, 55) || "Untitled complaint";
-  return (
-    <div className={cn(
-      "rounded-card border p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-l-4",
-      isGivenUp
-        ? "border-l-red-400 bg-red-50 border-red-200"
-        : "border-l-amber-400 bg-amber-50 border-amber-200"
-    )}>
-      <div className="flex items-start gap-4 min-w-0 flex-1">
-        <div className={cn(
-          "h-16 w-16 rounded-control shrink-0 flex items-center justify-center font-bold text-xs shadow-inner",
-          isGivenUp ? "bg-red-100 text-red-500" : "bg-amber-100 text-amber-600"
-        )}>
-          <WifiOff className="h-6 w-6" />
-        </div>
-        <div className="min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-mono font-bold text-slate-400 tracking-wider">{item.localId}</span>
-            {item.payload.category && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-pill bg-slate-100 text-slate-600 border border-slate-200">
-                {item.payload.category}
-              </span>
-            )}
-          </div>
-          <h3 className="text-sm font-bold text-slate-800 truncate leading-snug">{label}</h3>
-          <p className="text-xs text-slate-500 flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-            <span className="truncate">{item.payload.location.text || "Location not set"}</span>
-          </p>
-        </div>
-      </div>
-      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 w-full sm:w-auto shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-amber-100">
-        <span className={cn(
-          "text-[10px] font-bold px-2 py-1 rounded-pill",
-          isGivenUp ? "bg-red-100 text-red-700 border border-red-200" : "bg-amber-100 text-amber-700 border border-amber-200"
-        )}>
-          {isGivenUp ? "Sync Failed" : "Pending Sync"}
-        </span>
-        <div className="flex items-center gap-1 mt-1 text-slate-400 text-[11px] font-semibold">
-          <Calendar className="h-3 w-3" />
-          <span>{new Date(item.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "2-digit" })}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
+function ComplaintsContent() {
+  const { user } = useAuth();
+  const router = useRouter();
 
-// ── Local confirmed ticket row ────────────────────────────────────────────────
+  // If not logged in, default to guest credentials or redirect
+  const currentCitizenEmail = user?.email || "guest@civicvoice.gov.in";
 
-function LocalTicketRow({ ticket }: { ticket: LocalTicket }) {
-  const timestamp = useLiveTimestamp(ticket.created_at);
-  return (
-    <div className="bg-white rounded-card border border-primary/30 shadow-sm p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-l-4 border-l-primary">
-      <div className="flex items-start gap-4 min-w-0 flex-1">
-        <div className="h-16 w-16 rounded-control shrink-0 flex items-center justify-center border border-slate-100 bg-primary-tint font-bold text-primary text-xs shadow-inner">
-          📋
-        </div>
-        <div className="min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-mono font-bold text-slate-400 tracking-wider">{ticket.id}</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-pill bg-slate-100 text-slate-600 border border-slate-200">
-              {ticket.category}
-            </span>
-            {ticket.upvote_count > 1 && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-pill bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
-                <ThumbsUp className="h-2.5 w-2.5" /> {ticket.upvote_count}
-              </span>
-            )}
-          </div>
-          <h3 className="text-sm font-bold text-slate-800 truncate leading-snug">
-            {ticket.title || ticket.description.slice(0, 60)}
-          </h3>
-          {ticket.address && (
-            <p className="text-xs text-slate-500 flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-              <span className="truncate">{ticket.address}</span>
-            </p>
-          )}
-        </div>
-      </div>
-      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 w-full sm:w-auto shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-50">
-        <StatusBadge status={ticket.status} />
-        <div className="flex items-center gap-1 mt-1 text-slate-400 text-[11px] font-semibold">
-          <Calendar className="h-3 w-3" />
-          <span>{timestamp}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Seed/demo complaint row ───────────────────────────────────────────────────
-
-function SeedComplaintRow({ c, isDemo }: { c: (typeof MOCK_COMPLAINTS)[number]; isDemo?: boolean }) {
-  const timestamp = useLiveTimestamp(c.created_at);
-  return (
-    <div className="bg-white rounded-card border border-slate-100 shadow-sm p-4 hover:shadow-card-lg transition-all duration-150 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-l-4 border-l-primary">
-      <div className="flex items-start gap-4 min-w-0 flex-1">
-        <div className="h-16 w-16 rounded-control shrink-0 flex items-center justify-center border border-slate-100 font-bold text-slate-700 text-xs shadow-inner" style={{ backgroundColor: c.thumbnailColor }}>
-          📸 Issue
-        </div>
-        <div className="min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-mono font-bold text-slate-400 tracking-wider">{c.id}</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-pill bg-slate-100 text-slate-600 border border-slate-200">{c.category}</span>
-            {c.upvote_count > 1 && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-pill bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
-                <ThumbsUp className="h-2.5 w-2.5" /> {c.upvote_count}
-              </span>
-            )}
-            {isDemo && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-pill bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wider">Demo</span>
-            )}
-          </div>
-          <h3 className="text-sm font-bold text-slate-800 truncate leading-snug">{c.title}</h3>
-          <p className="text-xs text-slate-500 flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-            <span className="truncate">{c.location}</span>
-          </p>
-        </div>
-      </div>
-      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 w-full sm:w-auto shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-50">
-        <StatusBadge status={c.status} />
-        <div className="flex items-center gap-1 mt-1 text-slate-400 text-[11px] font-semibold">
-          <Calendar className="h-3 w-3" />
-          <span>{timestamp}</span>
-        </div>
-      </div>
-      <div className="hidden sm:block text-slate-300 hover:text-slate-500 cursor-pointer">
-        <ChevronRight className="h-5 w-5" />
-      </div>
-    </div>
-  );
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
-
-export default function MyComplaints() {
+  // States
+  const [tickets, setTickets] = useState<GrievanceTicket[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("Newest");
-  const [pendingItems, setPendingItems] = useState<PendingSubmission[]>([]);
-  const [localTickets, setLocalTickets] = useState<LocalTicket[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [loading, setLoading] = useState(true);
 
+  // Sync effect (§8 pattern)
   useEffect(() => {
-    setPendingItems(loadQueue());
-    setLocalTickets(loadUserTickets());
-  }, []);
+    migrateLegacyGrievanceData();
+    setTickets(getGrievancesByCitizenEmail(currentCitizenEmail));
+    setLoading(false);
 
-  // ── Three-source merge with dedup by ID ────────────────────────────────
-  // 1. Pending (no server ID yet)
-  // 2. Local confirmed tickets (server IDs)
-  // 3. Seed/mock — exclude IDs already in local tickets
-  const localTicketIds = new Set(localTickets.map((t) => t.id));
-  const dedupedSeedComplaints = MOCK_COMPLAINTS.filter((c) => !localTicketIds.has(c.id));
+    const refresh = () => {
+      setTickets(getGrievancesByCitizenEmail(currentCitizenEmail));
+    };
 
-  // Apply search + status filters per source
-  const filteredPending = pendingItems.filter((item) => {
-    if (statusFilter !== "All") return false; // pending has no server status
-    const label = `${item.payload.title} ${item.payload.description} ${item.payload.location.text}`.toLowerCase();
-    return !searchTerm || label.includes(searchTerm.toLowerCase());
-  });
+    window.addEventListener(GRIEVANCE_SYNC_EVENT, refresh);
+    window.addEventListener("storage", (e) => {
+      if (e.key === GRIEVANCE_STORE_KEY || !e.key) {
+        refresh();
+      }
+    });
 
-  const filteredLocal = localTickets.filter((t) => {
-    const matchesSearch = !searchTerm || `${t.title} ${t.description} ${t.address ?? ""}`.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "All" || t.status.toLowerCase().replace("_", " ") === statusFilter.toLowerCase();
+    return () => {
+      window.removeEventListener(GRIEVANCE_SYNC_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, [currentCitizenEmail]);
+
+  // Log debug count
+  console.log("[dashboard/complaints] count:", tickets.length);
+
+  const handleUpvote = (id: string) => {
+    upvoteGrievance(id);
+  };
+
+  // Filter & Search logic
+  const filteredTickets = tickets.filter((t) => {
+    const matchesSearch =
+      t.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.location.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = statusFilter === "All" ? true : t.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  const filteredSeed = dedupedSeedComplaints.filter((c) => {
-    const matchesSearch = !searchTerm || `${c.id} ${c.title} ${c.location}`.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "All" || c.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
+  // Sorting logic
+  const sortedTickets = [...filteredTickets].sort((a, b) => {
+    if (sortBy === "newest") {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+    if (sortBy === "oldest") {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+    if (sortBy === "upvotes") {
+      return (b.upvotes || 0) - (a.upvotes || 0);
+    }
+    return 0;
   });
 
-  const totalShown = filteredPending.length + filteredLocal.length + filteredSeed.length;
-  const hasPending = pendingItems.length > 0;
+  if (loading) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center text-slate-400">
+        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+        <span>Loading complaints...</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 font-sans">
+      
+      {/* Upper Action Bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 font-display">My Complaints</h1>
-          <p className="text-xs text-slate-500">Track and manage your submitted civic complaints</p>
+          <h1 className="text-xl font-extrabold text-slate-800 font-display">
+            My Complaints
+          </h1>
+          <p className="text-xs text-slate-400">
+            Track, upvote, and monitor status updates for issues you reported.
+          </p>
         </div>
-        <Link href="/citizen" className="btn-primary flex items-center justify-center gap-1.5 self-start md:self-auto">
-          <Plus className="h-4.5 w-4.5" />
-          <span>+ New Complaint</span>
+
+        <Link
+          href="/citizen"
+          className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs font-bold shadow-sm"
+        >
+          <Plus className="h-4 w-4" />
+          <span>New Complaint</span>
         </Link>
       </div>
 
-      {/* Pending sync banner */}
-      {hasPending && (
-        <div className="flex items-start gap-3 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <WifiOff className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p className="font-semibold">
-              {pendingItems.length} complaint{pendingItems.length !== 1 ? "s" : ""} pending server sync
-            </p>
-            <p className="text-xs text-amber-700">
-              Stored locally — will sync when the server is reachable. Do not clear browser data until they show a confirmed ticket ID.
-            </p>
+      {/* Filter Toolbar */}
+      <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3 text-xs font-semibold text-slate-650 text-slate-650">
+          
+          {/* Search bar */}
+          <div className="flex-grow relative flex items-center">
+            <Search className="absolute left-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search by ID, title, or location..."
+              className="w-full text-xs font-semibold border border-slate-200 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
+
+          {/* Status filter dropdown */}
+          <div className="w-full sm:w-44 flex items-center gap-1">
+            <Filter className="h-4 w-4 text-slate-400 shrink-0" />
+            <select
+              className="w-full text-xs font-bold border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer bg-white"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="All">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Under Review">Under Review</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+
+          {/* Sort selection dropdown */}
+          <div className="w-full sm:w-44 flex items-center gap-1">
+            <ArrowUpDown className="h-4 w-4 text-slate-400 shrink-0" />
+            <select
+              className="w-full text-xs font-bold border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer bg-white"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="upvotes">Most Upvoted</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Grid List rendering */}
+      {sortedTickets.length === 0 ? (
+        <div className="text-center py-16 text-slate-400 bg-white border border-slate-100 rounded-2xl shadow-sm space-y-4">
+          <AlertCircle className="h-10 w-10 mx-auto opacity-30" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">No complaints found</p>
+            <p className="text-xs text-slate-400">Try adjusting your filters or file a new ticket.</p>
+          </div>
+          <Link
+            href="/citizen"
+            className="mt-4 btn-primary mx-auto w-fit text-xs px-4 py-2"
+          >
+            <Plus className="h-4 w-4" />
+            <span>File a complaint</span>
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {sortedTickets.map((ticket) => (
+            <ComplaintCard
+              key={ticket.id}
+              ticket={ticket}
+              onUpvote={() => handleUpvote(ticket.id)}
+            />
+          ))}
         </div>
       )}
 
-      {/* Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3 bg-white p-4 rounded-card border border-slate-100 shadow-sm">
-        <div className="flex-1 min-w-0 relative">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-          <input type="text" placeholder="Search complaint ID, title, or location..."
-            className="w-full bg-slate-50 ps-10 pe-3 py-2 text-sm text-slate-800 border border-slate-200 rounded-control focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder-slate-400"
-            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500 shrink-0 flex items-center gap-1">
-            <Filter className="h-3.5 w-3.5" />Status:
-          </span>
-          <select className="text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-control px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
-            value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="All">All Status</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Pending">Pending</option>
-            <option value="Resolved">Resolved</option>
-          </select>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500 shrink-0 flex items-center gap-1">
-            <ArrowUpDown className="h-3.5 w-3.5" />Sort:
-          </span>
-          <select className="text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-control px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
-            value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="Newest">Newest First</option>
-            <option value="Oldest">Oldest First</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Complaints List */}
-      <div className="space-y-4">
-        {/* 1. Pending items — always first, amber */}
-        {filteredPending.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 pb-1">
-              <Clock className="h-3.5 w-3.5 text-amber-500" />
-              <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Pending Sync</span>
-            </div>
-            {filteredPending.map((item) => <PendingRow key={item.localId} item={item} />)}
-          </div>
-        )}
-
-        {/* 2. User's own confirmed tickets — primary border */}
-        {filteredLocal.length > 0 && (
-          <div className="space-y-3">
-            {filteredPending.length > 0 && (
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Your Confirmed Tickets</span>
-                <div className="h-px flex-1 bg-slate-200" />
-              </div>
-            )}
-            {filteredLocal.map((t) => <LocalTicketRow key={t.id} ticket={t} />)}
-          </div>
-        )}
-
-        {/* 3. Seed/demo data — de-emphasised with Demo badge */}
-        {filteredSeed.length > 0 && (
-          <div className="space-y-3">
-            {(filteredPending.length > 0 || filteredLocal.length > 0) && (
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Demo Data</span>
-                <div className="h-px flex-1 bg-slate-200" />
-              </div>
-            )}
-            {filteredSeed.map((c, idx) => <SeedComplaintRow key={c.id ?? idx} c={c} isDemo />)}
-          </div>
-        )}
-
-        {totalShown === 0 && (
-          <div className="bg-white rounded-card border border-slate-100 shadow-sm p-12 text-center">
-            <AlertCircle className="h-8 w-8 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-400 text-sm">No complaints found matching the criteria.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Pagination Footer */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100 text-xs text-slate-500 font-semibold">
-        <span>Showing {totalShown} complaint{totalShown !== 1 ? "s" : ""}</span>
-        <div className="flex items-center gap-1.5">
-          <button className="p-2 border border-slate-200 rounded-control bg-white hover:bg-slate-50 text-slate-500 disabled:opacity-50" disabled>
-            <ChevronLeft className="h-3.5 w-3.5" />
-          </button>
-          <button className="h-8 w-8 rounded-pill flex items-center justify-center bg-primary text-white font-bold shadow-sm">1</button>
-          <button className="p-2 border border-slate-200 rounded-control bg-white hover:bg-slate-50 text-slate-500 disabled:opacity-50" disabled>
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
     </div>
+  );
+}
+
+export default function ComplaintsPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-slate-400">Loading complaints...</div>}>
+      <ComplaintsContent />
+    </Suspense>
   );
 }

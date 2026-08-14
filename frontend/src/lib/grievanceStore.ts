@@ -2,7 +2,7 @@ import { GrievanceTicket, IssueStatus, NewGrievanceInput, CATEGORY_OPTIONS } fro
 
 export const GRIEVANCE_STORE_KEY = "civic_voice_grievances_master_v3";
 export const GRIEVANCE_SYNC_EVENT = "civic_voice_sync_event_v3";
-const MIGRATION_FLAG_KEY = "civic_voice_migration_v3_done";
+const MIGRATION_FLAG_KEY = "civic_voice_migration_v4_done";
 
 interface GrievancePayload {
   nextId: number;
@@ -19,16 +19,21 @@ export function migrateLegacyGrievanceData(): void {
   const keysToScan = Object.keys(localStorage);
   
   keysToScan.forEach((key) => {
-    // Scan for all legacy grievance-related keys
-    if (key.includes("grievance") && key !== GRIEVANCE_STORE_KEY) {
+    // Scan for all legacy/duplicate grievance keys
+    if (
+      (key.includes("grievance") || 
+       key.includes("complaint") || 
+       key.includes("ticket") || 
+       key.includes("mock")) && 
+      key !== GRIEVANCE_STORE_KEY
+    ) {
       localStorage.removeItem(key);
       removedKeys.push(key);
     }
   });
 
-  // Legacy tickets used an incompatible schema (UUID ids, non-canonical status/category values).
-  // Rather than risk silently mismapping citizen data, this migration clears legacy stores and reseeds clean canonical data.
-  console.log("[migration] cleared legacy keys:", removedKeys);
+  // Legacy tickets used an incompatible schema. Rather than risk corruption, we reseed clean data.
+  console.log("[migration v4] cleared:", removedKeys);
 
   localStorage.setItem(MIGRATION_FLAG_KEY, "true");
   seedGrievancesIfEmpty();
@@ -37,7 +42,6 @@ export function migrateLegacyGrievanceData(): void {
 export function seedGrievancesIfEmpty(): void {
   if (typeof window === "undefined") return;
 
-  // Make sure migration has run first
   const done = localStorage.getItem(MIGRATION_FLAG_KEY);
   if (done !== "true") {
     migrateLegacyGrievanceData();
@@ -64,6 +68,7 @@ export function seedGrievancesIfEmpty(): void {
         citizenEmail: "rohan.kulkarni@example.com",
         citizenPhone: "+919876543210",
         description: "A major water pipe burst here. Huge geyser and flooded road blocking traffic.",
+        upvotes: 3,
         department: "Central Municipal Administration",
         assignedOfficer: null,
         createdAt: getDateAgo(8),
@@ -88,6 +93,7 @@ export function seedGrievancesIfEmpty(): void {
         citizenEmail: "ananya.reddy@example.com",
         citizenPhone: "+919876543211",
         description: "Deep pothole in the middle lane, extremely dangerous for motorbikes.",
+        upvotes: 8,
         department: "Central Municipal Administration",
         assignedOfficer: null,
         createdAt: getDateAgo(6),
@@ -110,7 +116,7 @@ export function seedGrievancesIfEmpty(): void {
       {
         id: "TKT-2026-0003",
         title: "Streetlight outage on 3rd Cross, Jayanagar",
-        category: "Streetlights & Electricity",
+        category: "Street Lights",
         priority: "Medium",
         status: "In Progress",
         location: "3rd Cross, Jayanagar",
@@ -118,6 +124,7 @@ export function seedGrievancesIfEmpty(): void {
         citizenEmail: "vikram.singh@example.com",
         citizenPhone: "+919876543212",
         description: "Entire street is pitch black for the past 3 nights. Safety concern.",
+        upvotes: 12,
         department: "Central Municipal Administration",
         assignedOfficer: "Priya Sharma (OFF-1001)",
         createdAt: getDateAgo(4),
@@ -146,7 +153,7 @@ export function seedGrievancesIfEmpty(): void {
       {
         id: "TKT-2026-0004",
         title: "Overflowing garbage bin, Koramangala 5th Block",
-        category: "Sanitation & Waste",
+        category: "Cleanliness",
         priority: "Low",
         status: "Resolved",
         location: "Koramangala 5th Block",
@@ -154,6 +161,7 @@ export function seedGrievancesIfEmpty(): void {
         citizenEmail: "sneha.iyer@example.com",
         citizenPhone: "+919876543213",
         description: "The garbage bin at the crossroad is completely full and smelling terribly.",
+        upvotes: 2,
         department: "Central Municipal Administration",
         assignedOfficer: null,
         createdAt: getDateAgo(2),
@@ -184,6 +192,7 @@ export function seedGrievancesIfEmpty(): void {
         citizenEmail: "karan.mehta@example.com",
         citizenPhone: "+919876543214",
         description: "One of the swings has its chains broken. Needs replacement.",
+        upvotes: 1,
         department: "Central Municipal Administration",
         assignedOfficer: null,
         createdAt: getDateAgo(1),
@@ -224,6 +233,13 @@ export function getGrievances(): GrievanceTicket[] {
   }
 }
 
+export function getGrievancesByCitizenEmail(email: string): GrievanceTicket[] {
+  const normEmail = email.trim().toLowerCase();
+  return getGrievances().filter(
+    (t) => t.citizenEmail.trim().toLowerCase() === normEmail
+  );
+}
+
 export function getGrievanceById(id: string): GrievanceTicket | null {
   const tickets = getGrievances();
   return tickets.find((t) => t.id === id) || null;
@@ -232,7 +248,6 @@ export function getGrievanceById(id: string): GrievanceTicket | null {
 export function addGrievance(input: NewGrievanceInput): GrievanceTicket {
   seedGrievancesIfEmpty();
   
-  // Defensive validation on write
   if (!CATEGORY_OPTIONS.includes(input.category)) {
     throw new Error(`Invalid category submitted: ${input.category}`);
   }
@@ -255,6 +270,7 @@ export function addGrievance(input: NewGrievanceInput): GrievanceTicket {
     ...input,
     id: ticketId,
     status: "Pending",
+    upvotes: 1,
     department: "Central Municipal Administration",
     assignedOfficer: null,
     createdAt: now,
@@ -269,12 +285,13 @@ export function addGrievance(input: NewGrievanceInput): GrievanceTicket {
     ],
   };
 
-  // Prepend to array
   payload.tickets.unshift(newTicket);
   payload.nextId += 1;
 
   localStorage.setItem(GRIEVANCE_STORE_KEY, JSON.stringify(payload));
   
+  console.log("[grievanceStore] added", newTicket.id, "citizen:", newTicket.citizenEmail);
+
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(GRIEVANCE_SYNC_EVENT));
   }
@@ -305,7 +322,6 @@ export function updateGrievanceStatus(
   const ticket = payload.tickets[idx];
   const now = new Date().toISOString();
 
-  // Update notes history
   ticket.adminNotes.push({
     status,
     changedAt: now,
@@ -326,7 +342,7 @@ export function updateGrievanceStatus(
   return ticket;
 }
 
-export function deleteGrievance(id: string): boolean {
+export function upvoteGrievance(id: string): GrievanceTicket | null {
   seedGrievancesIfEmpty();
   
   const payloadStr = localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}";
@@ -335,23 +351,24 @@ export function deleteGrievance(id: string): boolean {
   try {
     payload = JSON.parse(payloadStr);
   } catch {
-    return false;
+    return null;
   }
 
-  const initialLen = payload.tickets.length;
-  payload.tickets = payload.tickets.filter((t) => t.id !== id);
-  
-  if (payload.tickets.length === initialLen) {
-    return false;
-  }
+  const idx = payload.tickets.findIndex((t) => t.id === id);
+  if (idx === -1) return null;
 
+  const ticket = payload.tickets[idx];
+  ticket.upvotes = (ticket.upvotes || 0) + 1;
+  ticket.updatedAt = new Date().toISOString();
+
+  payload.tickets[idx] = ticket;
   localStorage.setItem(GRIEVANCE_STORE_KEY, JSON.stringify(payload));
 
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(GRIEVANCE_SYNC_EVENT));
   }
 
-  return true;
+  return ticket;
 }
 
 export function computeStats(tickets: GrievanceTicket[]): {

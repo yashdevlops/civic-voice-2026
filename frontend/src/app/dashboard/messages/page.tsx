@@ -1,183 +1,338 @@
 "use client";
 
-import React, { useState } from "react";
-import { Send, Paperclip, Check, ChevronRight, Phone, Video, Info } from "lucide-react";
-import { MOCK_CONVERSATIONS, MOCK_CHAT_THREAD } from "@/lib/mock-data";
+import React, { useState, useEffect, useRef, Suspense } from "react";
+import { Send, Bot, User, Clock, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
+import {
+  ChatMessage,
+  QUICK_SUGGESTIONS,
+  generateBotResponse
+} from "@/lib/civicBot";
 
-export default function Messages() {
-  const [activeConvId, setActiveConvId] = useState("conv-1");
-  const [inputText, setInputText] = useState("");
-  const [chatThread, setChatThread] = useState(MOCK_CHAT_THREAD);
+interface Conversation {
+  id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  status: "online" | "offline";
+  lastMessage: string;
+  timestamp: string;
+}
 
-  const activeConv = MOCK_CONVERSATIONS.find((c) => c.id === activeConvId) || MOCK_CONVERSATIONS[0];
+const STATIC_CONVERSATIONS: Conversation[] = [
+  {
+    id: "civicbot",
+    name: "Civic Assistant (AI)",
+    avatar: "🤖",
+    role: "CivicBot Chatbot",
+    status: "online",
+    lastMessage: "Ask me about your complaint status, or...",
+    timestamp: "Live",
+  },
+  {
+    id: "ward12",
+    name: "Ward 12 Officer Desk",
+    avatar: "🧑‍✈️",
+    role: "Grievance Officer",
+    status: "offline",
+    lastMessage: "No recent messages",
+    timestamp: "1d ago",
+  },
+  {
+    id: "helpdesk",
+    name: "Municipal Helpdesk",
+    avatar: "📞",
+    role: "Support Agent",
+    status: "online",
+    lastMessage: "No recent messages",
+    timestamp: "3h ago",
+  },
+];
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim()) return;
+function MessagesContent() {
+  const { user } = useAuth();
+  const citizenEmail = user?.email || "guest@civicvoice.gov.in";
 
-    const newMsg = {
-      id: `msg-${Date.now()}`,
-      direction: "outgoing" as const,
-      text: inputText.trim(),
-      time: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }),
-    };
+  // Conversation selection state
+  const [activeConvId, setActiveConvId] = useState("civicbot");
 
-    setChatThread((prev) => [...prev, newMsg]);
-    setInputText("");
+  // Message list state (only active for civicbot)
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: "init-1",
+      sender: "bot",
+      text: "Hi! I'm CivicBot. Ask me about your complaint status, or tap a suggestion below.",
+      timestamp: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
+    },
+  ]);
+
+  const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom of messages
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
+  const handleSendMessage = async (textToSend: string) => {
+    if (!textToSend.trim() || isTyping) return;
+
+    const userTime = new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    const userMsg: ChatMessage = {
+      id: `msg-${Date.now()}-user`,
+      sender: "user",
+      text: textToSend.trim(),
+      timestamp: userTime,
+    };
+
+    // Add user message immediately
+    setMessages((prev) => [...prev, userMsg]);
+    setInputValue("");
+    setIsTyping(true);
+
+    // Simulated typing delay between 600ms and 1200ms
+    const randomDelay = Math.floor(Math.random() * (1200 - 600 + 1) + 600);
+    await new Promise((res) => setTimeout(res, randomDelay));
+
+    try {
+      const responseText = generateBotResponse(textToSend, citizenEmail);
+      const botTime = new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+      const botMsg: ChatMessage = {
+        id: `msg-${Date.now()}-bot`,
+        sender: "bot",
+        text: responseText,
+        timestamp: botTime,
+      };
+
+      setMessages((prev) => [...prev, botMsg]);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSendMessage(inputValue);
+  };
+
+  const activeConv = STATIC_CONVERSATIONS.find((c) => c.id === activeConvId) || STATIC_CONVERSATIONS[0];
+
   return (
-    <div className="h-[calc(100vh-140px)] flex bg-white border border-slate-100 rounded-card shadow-sm overflow-hidden">
+    <div className="h-[calc(100vh-140px)] flex bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden font-sans">
       
-      {/* Left Pane: Conversations List */}
+      {/* Left Sidebar: Conversations List */}
       <div className="w-full md:w-80 flex flex-col border-r border-slate-100 shrink-0">
         <div className="p-4 border-b border-slate-100">
-          <h1 className="text-base font-bold text-slate-800 font-display">
-            Department Chats
+          <h1 className="text-base font-extrabold text-slate-800 font-display">
+            Inbox Messages
           </h1>
-          <p className="text-xs text-slate-400">Direct communication with city offices</p>
+          <p className="text-xs text-slate-400">Direct chatbot support & support desks</p>
         </div>
 
         <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
-          {MOCK_CONVERSATIONS.map((c) => {
+          {STATIC_CONVERSATIONS.map((c) => {
             const isActive = c.id === activeConvId;
             return (
-              <div
+              <button
                 key={c.id}
                 onClick={() => setActiveConvId(c.id)}
                 className={cn(
-                  "p-4 flex items-start gap-3 cursor-pointer hover:bg-slate-50 transition-colors",
-                  isActive && "bg-primary-tint/30 border-l-4 border-primary"
+                  "w-full text-left p-4 flex items-start gap-3 cursor-pointer hover:bg-slate-50 transition-colors border-l-4 border-transparent",
+                  isActive && "bg-slate-50 border-l-amber-600"
                 )}
               >
-                {/* Avatar / initial */}
-                <div 
-                  className="h-10 w-10 rounded-full shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-sm"
-                  style={{ backgroundColor: c.departmentColor }}
-                >
-                  {c.departmentInitial}
+                <div className="h-10 w-10 rounded-full bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center text-lg shadow-inner">
+                  {c.avatar}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1.5">
-                    <h3 className="text-xs font-bold text-slate-800 truncate">
-                      {c.department}
+                    <h3 className="text-xs font-extrabold text-slate-800 truncate">
+                      {c.name}
                     </h3>
-                    <span className="text-[10px] font-semibold text-slate-400 shrink-0">
+                    <span className="text-[9px] font-bold text-slate-400 shrink-0">
                       {c.timestamp}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 truncate mt-1">
-                    {c.lastMessage}
+                  <p className="text-[11px] text-slate-500 font-semibold truncate mt-1">
+                    {c.role}
+                  </p>
+                  <p className="text-xs text-slate-400 truncate mt-0.5 font-medium italic">
+                    {c.id === "civicbot" ? c.lastMessage : "Visual simulation desk"}
                   </p>
                 </div>
-
-                {c.unreadCount && c.unreadCount > 0 && !isActive && (
-                  <span className="h-5 w-5 rounded-full bg-primary text-white text-[10px] font-extrabold flex items-center justify-center shrink-0">
-                    {c.unreadCount}
-                  </span>
-                )}
-              </div>
+              </button>
             );
           })}
         </div>
       </div>
 
-      {/* Right Pane: Active Chat Thread */}
-      <div className="hidden md:flex flex-1 flex-col bg-slate-50/50">
+      {/* Right Chat Pane */}
+      <div className="flex flex-grow flex-col bg-slate-50/40">
+        
         {/* Chat Header */}
-        <div className="bg-white px-6 py-3 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-white px-6 py-3 border-b border-slate-100 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
-            <div 
-              className="h-10 w-10 rounded-full flex items-center justify-center text-white text-xs font-bold"
-              style={{ backgroundColor: activeConv.departmentColor }}
-            >
-              {activeConv.departmentInitial}
+            <div className="h-9 w-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-lg shadow-inner">
+              {activeConv.avatar}
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-800">{activeConv.department}</h2>
-              <span className="text-[10px] font-semibold text-green-500 flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                Online
+              <h2 className="text-sm font-extrabold text-slate-800 flex items-center gap-1.5 leading-none">
+                <span>{activeConv.name}</span>
+                {activeConv.status === "online" && (
+                  <span className="h-2 w-2 rounded-full bg-green-500" />
+                )}
+              </h2>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 block">
+                {activeConv.role}
               </span>
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center gap-2 text-slate-400">
-            <button className="p-2 hover:bg-slate-50 hover:text-slate-600 rounded-control transition-colors">
-              <Phone className="h-4.5 w-4.5" />
-            </button>
-            <button className="p-2 hover:bg-slate-50 hover:text-slate-600 rounded-control transition-colors">
-              <Video className="h-4.5 w-4.5" />
-            </button>
-            <button className="p-2 hover:bg-slate-50 hover:text-slate-600 rounded-control transition-colors">
-              <Info className="h-4.5 w-4.5" />
-            </button>
+        {/* Chat Area Body */}
+        {activeConvId !== "civicbot" ? (
+          /* Placeholder State for Unavailable Conversations */
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+            <AlertCircle className="h-10 w-10 text-slate-400 opacity-40 animate-pulse" />
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-slate-700">Desk Unavailable</h3>
+              <p className="text-xs text-slate-400 max-w-xs leading-relaxed font-semibold">
+                This conversation isn't available in this demo yet.
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Functional CivicBot Chat Thread */
+          <div className="flex-1 flex flex-col min-h-0 bg-slate-50/25">
+            
+            {/* Scrollable messages box */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {messages.map((msg) => {
+                const isBot = msg.sender === "bot";
+                return (
+                  <div
+                    key={msg.id}
+                    className={cn(
+                      "flex items-end gap-2.5 max-w-[85%]",
+                      isBot ? "self-start" : "self-end flex-row-reverse ml-auto"
+                    )}
+                  >
+                    {/* Avatar icon bubble */}
+                    <div
+                      className={cn(
+                        "h-8 w-8 rounded-full border shadow-inner flex items-center justify-center text-xs shrink-0",
+                        isBot ? "bg-slate-100 border-slate-200" : "bg-emerald-50 border-emerald-150"
+                      )}
+                    >
+                      {isBot ? (
+                        <Bot className="h-4.5 w-4.5 text-slate-650" />
+                      ) : (
+                        <User className="h-4.5 w-4.5 text-emerald-650" />
+                      )}
+                    </div>
 
-        {/* Message Thread Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {chatThread.map((msg) => {
-            const isOutgoing = msg.direction === "outgoing";
-            return (
-              <div
-                key={msg.id}
-                className={cn(
-                  "flex flex-col max-w-[70%] space-y-1",
-                  isOutgoing ? "ml-auto items-end" : "mr-auto items-start"
-                )}
-              >
-                <div 
-                  className={cn(
-                    "px-4 py-2.5 text-xs shadow-sm leading-relaxed",
-                    isOutgoing ? "chat-bubble-outgoing" : "chat-bubble-incoming"
-                  )}
-                >
-                  {msg.text}
+                    {/* Chat Bubble container */}
+                    <div className="space-y-1">
+                      <div
+                        className={cn(
+                          "rounded-2xl px-4 py-2.5 text-xs font-semibold leading-relaxed shadow-sm whitespace-pre-wrap",
+                          isBot
+                            ? "bg-white border border-slate-100 text-slate-700 rounded-bl-none"
+                            : "bg-emerald-600 border border-emerald-700 text-white rounded-br-none"
+                        )}
+                      >
+                        {msg.text}
+                      </div>
+                      
+                      <div
+                        className={cn(
+                          "text-[9px] font-bold text-slate-400 flex items-center gap-1",
+                          isBot ? "justify-start pl-1" : "justify-end pr-1"
+                        )}
+                      >
+                        <Clock className="h-3 w-3 shrink-0" />
+                        <span>{msg.timestamp}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="flex items-end gap-2.5 max-w-[80%] self-start animate-pulse">
+                  <div className="h-8 w-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs shrink-0 shadow-inner">
+                    <Bot className="h-4.5 w-4.5 text-slate-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="bg-white border border-slate-100 text-slate-500 rounded-2xl rounded-bl-none px-4 py-2.5 text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />
+                      <span>CivicBot is typing...</span>
+                    </div>
+                  </div>
                 </div>
-                
-                <span className="text-[9px] font-semibold text-slate-400 px-1 flex items-center gap-0.5">
-                  {msg.time}
-                  {isOutgoing && <Check className="h-3 w-3 text-green-500" />}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
 
-        {/* Message Input Bar */}
-        <form onSubmit={handleSend} className="bg-white p-4 border-t border-slate-100 flex items-center gap-3">
-          <button 
-            type="button" 
-            className="p-2.5 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-control transition-colors"
-          >
-            <Paperclip className="h-4.5 w-4.5" />
-          </button>
-          
-          <input
-            type="text"
-            placeholder={`Message ${activeConv.department}...`}
-            className="flex-1 bg-slate-50 px-4 py-2.5 text-xs text-slate-800 border border-slate-200 rounded-control focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder-slate-400"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-          />
+            {/* Quick Suggestion Chips */}
+            <div className="px-6 py-2 bg-white/50 border-t border-slate-100 flex flex-wrap gap-2 items-center">
+              {QUICK_SUGGESTIONS.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => handleSendMessage(suggestion)}
+                  disabled={isTyping}
+                  className="bg-white hover:bg-slate-50 border border-slate-200 rounded-full px-3.5 py-1.5 text-[10px] font-bold text-slate-600 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
 
-          <button 
-            type="submit" 
-            className="btn-primary p-2.5 flex items-center justify-center shrink-0"
-            style={{ borderRadius: "var(--radius-control)" }}
-          >
-            <Send className="h-4 w-4" />
-          </button>
-        </form>
+            {/* Text input form box */}
+            <div className="p-4 bg-white border-t border-slate-100">
+              <form onSubmit={handleFormSubmit} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Type your message to CivicBot..."
+                  disabled={isTyping}
+                  className="flex-grow text-xs font-semibold border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  disabled={!inputValue.trim() || isTyping}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-4 py-2.5 flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer shrink-0 shadow-sm"
+                >
+                  <Send className="h-4.5 w-4.5" />
+                </button>
+              </form>
+            </div>
+
+          </div>
+        )}
+
       </div>
-
     </div>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-slate-400">Loading inbox...</div>}>
+      <MessagesContent />
+    </Suspense>
   );
 }
