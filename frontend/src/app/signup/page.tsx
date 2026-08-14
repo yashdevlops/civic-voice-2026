@@ -126,13 +126,13 @@ export default function Signup() {
                 Full Name
               </label>
               <div className="relative flex items-center w-full">
-                <User className="absolute left-3.5 w-5 h-5 text-slate-400 pointer-events-none z-10" />
+
                 <input
                   type="text"
                   id="signup-name"
                   placeholder="Your full name"
                   required
-                  className="civic-input pl-11"
+                  className="civic-input px-4"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -145,13 +145,13 @@ export default function Signup() {
                 Email Address
               </label>
               <div className="relative flex items-center w-full">
-                <Mail className="absolute left-3.5 w-5 h-5 text-slate-400 pointer-events-none z-10" />
+
                 <input
                   type="email"
                   id="signup-email"
                   placeholder="name@example.com"
                   required
-                  className="civic-input pl-11"
+                  className="civic-input px-4"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -164,13 +164,13 @@ export default function Signup() {
                 Phone Number
               </label>
               <div className="relative flex items-center w-full">
-                <Phone className="absolute left-3.5 w-5 h-5 text-slate-400 pointer-events-none z-10" />
+
                 <input
                   type="text"
                   id="signup-phone"
                   placeholder="+91 XXXXX XXXXX"
                   required
-                  className="civic-input pl-11"
+                  className="civic-input px-4"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />

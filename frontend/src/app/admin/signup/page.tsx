@@ -31,12 +31,12 @@ function AdminSignupForm() {
   // Seed on startup + suggest unique Officer ID
   useEffect(() => {
     seedOfficersIfEmpty();
-    
+
     // Suggest a unique Officer ID
     let randomDigits = Math.floor(1000 + Math.random() * 9000);
     let suggestion = `OFF-${randomDigits}`;
     let safetyCounter = 100;
-    
+
     while (isOfficerIdTaken(suggestion) && safetyCounter > 0) {
       randomDigits = Math.floor(1000 + Math.random() * 9000);
       suggestion = `OFF-${randomDigits}`;
@@ -153,7 +153,7 @@ function AdminSignupForm() {
     !/@civicvoice\.gov\.in$/.test(officialEmail.trim().toLowerCase());
 
   const { score: passwordScore } = getPasswordRuleStatus(password);
-  
+
   // Submit is allowed only when format validations pass
   const isFormValid =
     name.trim().length >= 2 &&
@@ -164,12 +164,12 @@ function AdminSignupForm() {
 
   return (
     <div className="min-h-screen bg-bg flex flex-col font-sans">
-      
+
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Logo size="sm" variant="dark" href="/" />
-            
+
             <Link
               href="/admin/login"
               className="text-xs font-semibold text-amber-700 hover:underline"
@@ -182,7 +182,7 @@ function AdminSignupForm() {
 
       <main className="flex-grow flex items-center justify-center pt-24 pb-16 px-4">
         <div className="w-full max-w-[480px] bg-white border border-slate-100 rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-          
+
           <div className="space-y-1.5 text-center">
             <h1 className="text-xl font-extrabold text-slate-800 font-display flex items-center justify-center gap-1.5">
               <span>Officer Registration</span>
@@ -279,7 +279,7 @@ function AdminSignupForm() {
                 Mobile Number (Optional)
               </label>
               <div className="relative flex items-center w-full">
-                <span className="absolute left-3.5 text-slate-400 font-bold text-sm select-none">+91</span>
+                <span className="absolute left-3.5 text-slate-400 font-bold text-sm select-none"></span>
                 <input
                   type="tel"
                   id="signup-phone"

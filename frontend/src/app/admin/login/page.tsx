@@ -117,7 +117,7 @@ function AdminLoginForm() {
 
   return (
     <div className="min-h-screen flex font-sans">
-      
+
       {/* Left Scrim Banner */}
       <div
         className="hidden lg:flex lg:w-1/2 relative bg-cover bg-center items-start p-10"
@@ -184,14 +184,14 @@ function AdminLoginForm() {
                 Official Email
               </label>
               <div className="relative flex items-center w-full">
-                <Mail className="absolute left-3.5 w-5 h-5 text-slate-400 pointer-events-none z-10" />
+
                 <input
                   type="email"
                   id="login-email"
                   placeholder="officer@civicvoice.gov.in"
                   required
                   disabled={isLocked || loading}
-                  className="civic-input pl-11"
+                  className="civic-input pX-4"
                   value={officialEmail}
                   onChange={(e) => setOfficialEmail(e.target.value)}
                 />
@@ -214,7 +214,7 @@ function AdminLoginForm() {
                 <Key className="h-3.5 w-3.5 shrink-0" />
                 <span>Quick Demo Login Buttons</span>
               </p>
-              
+
               <div className="flex flex-col gap-2">
                 <button
                   type="button"
@@ -224,7 +224,7 @@ function AdminLoginForm() {
                   <span className="font-extrabold text-slate-800 text-[10px]">YASH DEO (Admin)</span>
                   <span className="font-mono text-[9px] text-slate-450 text-slate-500">yashdeo1@civicvoice.gov.in / Admin@123</span>
                 </button>
-                
+
                 <button
                   type="button"
                   onClick={() => handleQuickLoginFill("admin@civicvoice.gov.in")}

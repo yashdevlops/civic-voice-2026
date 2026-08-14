@@ -76,7 +76,7 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (lockoutTime > 0) return;
-    
+
     setErrorMsg(null);
     setIsSubmitting(true);
 
@@ -100,12 +100,12 @@ function LoginForm() {
   const [selectedGoogleName, setSelectedGoogleName] = useState("");
   const [googlePassword, setGooglePassword] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
-  
+
   const handleGoogleSelect = async (email: string, name: string) => {
     setGoogleLoading(true);
     setSelectedGoogleEmail(email);
     setSelectedGoogleName(name);
-    
+
     try {
       const { isNew } = await loginWithGoogle(email, name);
       if (isNew) {
@@ -168,7 +168,7 @@ function LoginForm() {
     setOtpSent(randomCode);
     setOtpExpiry(Date.now() + 5 * 60 * 1000); // 5 minutes
     setOtpResendTimer(30);
-    
+
     // Simulate SMS delivery via console and a temporary mock toast
     console.log(`[SMS OTP] Code sent to +91${phoneInput}: ${randomCode}`);
     const toast = document.createElement("div");
@@ -266,7 +266,7 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex font-sans">
-      
+
       {/* Left Pane: Full-height city park photo panel */}
       <div
         className="hidden lg:flex lg:w-1/2 relative bg-cover bg-center items-start p-10"
@@ -334,14 +334,14 @@ function LoginForm() {
                 Email or Phone
               </label>
               <div className="relative flex items-center w-full">
-                <Mail className="absolute left-3.5 w-5 h-5 text-slate-400 pointer-events-none z-10" />
+
                 <input
                   type="text"
                   id="login-email"
                   placeholder="name@example.com or +91..."
                   required
                   disabled={lockoutTime > 0}
-                  className="civic-input pl-11"
+                  className="civic-input px-4"
                   value={emailOrPhone}
                   onChange={(e) => setEmailOrPhone(e.target.value)}
                 />
@@ -650,13 +650,13 @@ function LoginForm() {
                 Email or Mobile Number
               </label>
               <div className="relative flex items-center w-full">
-                <Mail className="absolute left-3.5 w-5 h-5 text-slate-400 pointer-events-none z-10" />
+
                 <input
                   type="text"
                   id="forgot-id"
                   placeholder="name@example.com or 9876543210"
                   required
-                  className="civic-input pl-11"
+                  className="civic-input px-4"
                   value={forgotIdentifier}
                   onChange={(e) => setForgotIdentifier(e.target.value)}
                 />

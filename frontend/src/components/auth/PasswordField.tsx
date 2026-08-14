@@ -12,7 +12,7 @@ interface PasswordFieldProps {
   showStrengthMeter?: boolean;
   error?: FieldError;
   id: string;
-  
+
   // Legacy compatibility props for citizen pages
   showStrength?: boolean;
   required?: boolean;
@@ -89,7 +89,7 @@ export default function PasswordField({
         </label>
       )}
       <div className="relative flex items-center w-full">
-        <Lock className="absolute left-3.5 w-5 h-5 text-slate-400 pointer-events-none z-10" />
+
         <input
           type={showPassword ? "text" : "password"}
           id={id}
@@ -97,7 +97,7 @@ export default function PasswordField({
           required={required}
           disabled={disabled}
           className={cn(
-            "civic-input pl-11 pr-11 w-full",
+            "civic-input px-4 pr-11 w-full",
             error ? "border-red-300 focus:ring-red-400" : ""
           )}
           value={value}
