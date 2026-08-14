@@ -1,13 +1,36 @@
 # Dependencies
 node_modules/
+*/node_modules/
 backend/venv/
+venv/
+env/
 __pycache__/
+*/__pycache__/
+*.pyc
 
 # Next.js & Build outputs
 .next/
+*/.next/
 dist/
+out/
+build/
+*.tsbuildinfo
+
+# Local Databases & Storage
+*.db
+*.db-shm
+*.db-wal
+backend/chroma_store/
+backend/uploads/
 
 # Environment files
 .env
 .env.local
 *.env
+.env*.local
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -111,7 +111,7 @@ export interface Strings {
 }
 
 const EN: Strings = {
-  navTitle: "CivicTrack",
+  navTitle: "CivicVoice",
   navCitizen: "Citizen Portal",
   navAdmin: "Admin Dashboard",
   navBudget: "Budget",
@@ -194,7 +194,7 @@ const EN: Strings = {
 };
 
 const HI: Strings = {
-  navTitle: "सिविकट्रैक",
+  navTitle: "सिविकवॉइस",
   navCitizen: "नागरिक पोर्टल",
   navAdmin: "प्रशासन डैशबोर्ड",
   navBudget: "बजट",
@@ -277,7 +277,7 @@ const HI: Strings = {
 };
 
 const OD: Strings = {
-  navTitle: "ସିଭିକ୍‌ଟ୍ରାକ୍",
+  navTitle: "ସିଭିକ୍‌ଭଏସ୍",
   navCitizen: "ନାଗରିକ ପୋର୍ଟାଲ",
   navAdmin: "ପ୍ରଶାସନ ଡ୍ୟାସବୋର୍ଡ",
   navBudget: "ବଜେଟ",

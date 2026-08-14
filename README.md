@@ -1,4 +1,4 @@
-# CivicTrack — SOAIDEATHON-S36
+# CivicVoice — SOAIDEATHON-S36
 ## Evidence-Grounded Civic Grievance Triage & Participatory Budgeting Platform
 
 A hackathon-ready prototype for problem statement **SOAIDEATHON-S36**.  
@@ -244,4 +244,4 @@ Full interactive docs at `http://localhost:8000/docs`.
 
 ---
 
-*Built for SOAIDEATHON-S36 · CivicTrack by Team s36*
+*Built for SOAIDEATHON-S36 · CivicVoice by Team s36*

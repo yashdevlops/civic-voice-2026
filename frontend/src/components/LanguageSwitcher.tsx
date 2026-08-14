@@ -25,7 +25,7 @@ export default function LanguageSwitcher() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 text-sm text-white/80 hover:text-white px-2 py-1.5 rounded hover:bg-white/10 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-primary px-2 py-1.5 rounded-control hover:bg-primary-tint transition-colors"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -36,7 +36,7 @@ export default function LanguageSwitcher() {
 
       {open && (
         <div
-          className="absolute right-0 mt-1 w-36 rounded-sm bg-ink border border-white/10 shadow-lg z-50 animate-fade-in"
+          className="absolute right-0 mt-1 w-36 rounded-card bg-white border border-slate-100 shadow-card-lg z-50 animate-fade-in overflow-hidden"
           role="listbox"
         >
           {(Object.keys(LANGUAGE_LABELS) as Language[]).map((l) => (
@@ -46,10 +46,10 @@ export default function LanguageSwitcher() {
               aria-selected={lang === l}
               onClick={() => { setLang(l); setOpen(false); }}
               className={cn(
-                "w-full text-left px-3 py-2 text-sm transition-colors",
+                "w-full text-left px-3 py-2.5 text-sm transition-colors",
                 lang === l
-                  ? "text-amber-civic bg-white/5 font-medium"
-                  : "text-white/70 hover:text-white hover:bg-white/10"
+                  ? "text-primary bg-primary-tint font-medium"
+                  : "text-slate-600 hover:text-primary hover:bg-slate-50"
               )}
             >
               {LANGUAGE_LABELS[l]}

@@ -1,2 +1,0 @@
-# This file ensures the uploads/ directory is committed to git
-# while its contents (user-uploaded files) remain gitignored.

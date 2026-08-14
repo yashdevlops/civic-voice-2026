@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Slab:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss/base";
 @import "tailwindcss/components";
@@ -6,33 +6,41 @@
 
 /* ── CSS Custom Properties ─────────────────────────────────────────────────── */
 :root {
-  /* Civic palette tokens (mirrors tailwind.config.ts for use in plain CSS) */
-  --color-ink: #16232B;
-  --color-civic: #1B3A4B;
-  --color-civic-light: #244d62;
-  --color-amber: #D9A441;
-  --color-resolved: #3C7A5B;
-  --color-paper: #EEF2F0;
-  --color-paper-dark: #DDE4E0;
+  /* CivicVoice brand tokens — mirrors tailwind.config.ts */
+  --color-primary:        #2E7D32;
+  --color-primary-dark:   #1B5E20;
+  --color-primary-tint:   #E8F5E9;
+  --color-bg:             #F8FAFC;
+  --color-bg-alt:         #F4F6F8;
+  --color-surface:        #FFFFFF;
+  --color-text-primary:   #0F172A;
+  --color-text-secondary: #64748B;
+  --color-border:         #E2E8F0;
 
-  /* Status colours — referenced by components via CSS vars, never hardcoded hex */
-  --status-open: #E05A2B;
-  --status-in-progress: #D9A441;
-  --status-resolved: #3C7A5B;
-  --status-rejected: #6B7280;
+  /* Status tokens */
+  --status-inprogress-bg:   #DBEAFE;
+  --status-inprogress-text: #1E40AF;
+  --status-pending-bg:      #FEF3C7;
+  --status-pending-text:    #92400E;
+  --status-resolved-bg:     #DCFCE7;
+  --status-resolved-text:   #166534;
 
-  /* Category badge colours */
-  --cat-sanitation: #10B981;
-  --cat-roads: #F59E0B;
-  --cat-electricity: #8B5CF6;
-  --cat-water: #3B82F6;
-  --cat-other: #6B7280;
+  /* Layout */
+  --sidebar-width: 240px;
+  --topbar-height: 64px;
+
+  /* Radii */
+  --radius-card:    16px;
+  --radius-control: 10px;
+  --radius-pill:    999px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgba(15,23,42,0.04), 0 1px 3px rgba(15,23,42,0.06);
+  --shadow-card-lg: 0 4px 6px rgba(15,23,42,0.04), 0 10px 15px rgba(15,23,42,0.06);
 }
 
-/* ── Base reset ────────────────────────────────────────────────────────────── */
-*,
-*::before,
-*::after {
+/* ── Base reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
@@ -41,203 +49,292 @@ html {
 }
 
 body {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Typography ────────────────────────────────────────────────────────────── */
-h1,
-h2,
-h3 {
-  font-family: 'Roboto Slab', ui-serif, Georgia, serif;
-  color: var(--color-ink);
+/* ── Typography ─────────────────────────────────────────────────────────────── */
+h1, h2, h3 {
+  font-family: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, sans-serif;
+  color: var(--color-text-primary);
+  font-weight: 700;
 }
 
-/* ── Status badge utility classes ──────────────────────────────────────────── */
-.badge-status-open {
-  background-color: rgba(224, 90, 43, 0.12);
-  color: var(--status-open);
-  border: 1px solid rgba(224, 90, 43, 0.3);
+/* ── Status badge utility classes ───────────────────────────────────────────── */
+.badge-status-open,
+.badge-status-OPEN {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border: 1px solid rgba(146, 64, 14, 0.25);
 }
 
-.badge-status-in_progress {
-  background-color: rgba(217, 164, 65, 0.12);
-  color: var(--status-in-progress);
-  border: 1px solid rgba(217, 164, 65, 0.3);
+.badge-status-in_progress,
+.badge-status-in-progress,
+.badge-status-IN_PROGRESS {
+  background-color: var(--status-inprogress-bg);
+  color: var(--status-inprogress-text);
+  border: 1px solid rgba(30, 64, 175, 0.25);
 }
 
-.badge-status-resolved {
-  background-color: rgba(60, 122, 91, 0.12);
-  color: var(--status-resolved);
-  border: 1px solid rgba(60, 122, 91, 0.3);
+.badge-status-resolved,
+.badge-status-RESOLVED {
+  background-color: var(--status-resolved-bg);
+  color: var(--status-resolved-text);
+  border: 1px solid rgba(22, 101, 52, 0.25);
 }
 
-.badge-status-rejected {
-  background-color: rgba(107, 114, 128, 0.12);
-  color: var(--status-rejected);
-  border: 1px solid rgba(107, 114, 128, 0.3);
+.badge-status-rejected,
+.badge-status-REJECTED {
+  background-color: #F3F4F6;
+  color: #6B7280;
+  border: 1px solid rgba(107, 114, 128, 0.25);
 }
 
-/* ── Category badge utility classes ────────────────────────────────────────── */
-.badge-cat-sanitation {
-  background-color: rgba(16, 185, 129, 0.12);
-  color: var(--cat-sanitation);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+.badge-status-pending,
+.badge-status-PENDING {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border: 1px solid rgba(146, 64, 14, 0.25);
+}
+
+/* ── Category badge utility classes ─────────────────────────────────────────── */
+.badge-cat-sanitation, .badge-cat-cleanliness {
+  background-color: rgba(16, 185, 129, 0.10);
+  color: #065F46;
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .badge-cat-roads {
-  background-color: rgba(245, 158, 11, 0.12);
-  color: var(--cat-roads);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background-color: rgba(245, 158, 11, 0.10);
+  color: #92400E;
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
-.badge-cat-electricity {
-  background-color: rgba(139, 92, 246, 0.12);
-  color: var(--cat-electricity);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+.badge-cat-electricity, .badge-cat-street-lights, .badge-cat-street_lights {
+  background-color: rgba(139, 92, 246, 0.10);
+  color: #5B21B6;
+  border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
-.badge-cat-water {
-  background-color: rgba(59, 130, 246, 0.12);
-  color: var(--cat-water);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+.badge-cat-water, .badge-cat-water-supply, .badge-cat-water_supply {
+  background-color: rgba(59, 130, 246, 0.10);
+  color: #1E40AF;
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
-.badge-cat-other {
-  background-color: rgba(107, 114, 128, 0.12);
-  color: var(--cat-other);
-  border: 1px solid rgba(107, 114, 128, 0.3);
+.badge-cat-other, .badge-cat-waste-mgmt, .badge-cat-waste_mgmt {
+  background-color: rgba(107, 114, 128, 0.10);
+  color: #374151;
+  border: 1px solid rgba(107, 114, 128, 0.25);
 }
 
-/* ── Grievance ticket card — paper ticket visual style ─────────────────────── */
+/* ── Complaint / ticket card ────────────────────────────────────────────────── */
 .ticket-card {
-  background: #FAFCFB;
-  border-left: 4px solid var(--color-civic);
-  border-radius: 2px;
-  box-shadow: 2px 2px 0 0 rgba(22, 35, 43, 0.12), 4px 4px 0 0 rgba(22, 35, 43, 0.06);
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
   transition: box-shadow 0.2s ease, transform 0.15s ease;
   position: relative;
-  /* Subtle horizontal rule texture at the bottom — evokes a perforated tear */
-  border-bottom: 2px dashed var(--color-paper-dark);
 }
 
 .ticket-card:hover {
-  box-shadow: 3px 3px 0 0 rgba(22, 35, 43, 0.18), 6px 6px 0 0 rgba(22, 35, 43, 0.09);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-card-lg);
+  transform: translateY(-2px);
 }
 
-/* ── RESOLVED stamp overlay ────────────────────────────────────────────────── */
-.ticket-card.ticket-resolved::after {
-  content: "RESOLVED";
-  position: absolute;
-  top: 50%;
-  right: 1.25rem;
-  transform: translateY(-50%) rotate(-15deg);
-  font-family: 'Roboto Slab', serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: rgba(60, 122, 91, 0.22);
-  border: 3px solid rgba(60, 122, 91, 0.2);
-  padding: 0.15rem 0.5rem;
-  pointer-events: none;
+.ticket-card.ticket-resolved {
+  border-left-color: var(--status-resolved-text);
 }
 
-/* ── Priority indicator bar (left accent) ──────────────────────────────────── */
-.ticket-card[data-priority="5"] {
-  border-left-color: #DC2626;
-}
+/* Priority indicator */
+.ticket-card[data-priority="5"] { border-left-color: #DC2626; }
+.ticket-card[data-priority="4"] { border-left-color: #EA580C; }
+.ticket-card[data-priority="3"] { border-left-color: #D97706; }
+.ticket-card[data-priority="2"] { border-left-color: #2563EB; }
+.ticket-card[data-priority="1"] { border-left-color: #6B7280; }
 
-.ticket-card[data-priority="4"] {
-  border-left-color: #EA580C;
-}
-
-.ticket-card[data-priority="3"] {
-  border-left-color: var(--color-amber);
-}
-
-.ticket-card[data-priority="2"] {
-  border-left-color: #2563EB;
-}
-
-.ticket-card[data-priority="1"] {
-  border-left-color: #6B7280;
-}
-
-/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
-
 ::-webkit-scrollbar-track {
-  background: var(--color-paper-dark);
+  background: var(--color-bg-alt);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: var(--color-civic-light);
+  background: #CBD5E1;
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-civic);
+  background: var(--color-primary);
 }
 
-/* ── Focus ring ────────────────────────────────────────────────────────────── */
+/* ── Focus ring ─────────────────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--color-amber);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-/* ── Form inputs shared style ──────────────────────────────────────────────── */
+/* ── Form inputs shared style ───────────────────────────────────────────────── */
 .civic-input {
-  @apply w-full rounded border border-paper-dark bg-white px-3 py-2 text-ink text-sm;
-  @apply focus:outline-none focus:border-civic focus:ring-2 focus:ring-civic/20;
-  @apply transition-colors duration-150;
+  @apply w-full bg-white px-3 py-2.5 text-sm text-slate-900;
+  @apply border border-slate-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+  @apply transition-all duration-150 placeholder-slate-400;
+  border-radius: var(--radius-control);
 }
 
 .civic-textarea {
   @apply civic-input resize-none;
-  min-height: 90px;
+  min-height: 100px;
 }
 
-/* ── Primary CTA button ────────────────────────────────────────────────────── */
+/* ── Icon-adorned input helpers ─────────────────────────────────────────────── */
+/* Use these on the icon element itself (not the input). The input gets ps-10 / pe-10. */
+/* Logical properties (start/end) ensure correct placement in both LTR and RTL layouts. */
+.input-icon-leading {
+  @apply pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-slate-400;
+}
+.input-icon-trailing {
+  @apply pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-slate-400;
+}
+
+
+/* ── Button variants ─────────────────────────────────────────────────────────── */
 .btn-primary {
-  @apply inline-flex items-center gap-2 rounded px-4 py-2 font-semibold text-sm;
-  @apply bg-amber-civic text-ink transition-all duration-150;
-  @apply hover:bg-amber-light active:scale-95;
+  @apply inline-flex items-center gap-2 font-semibold text-sm text-white;
+  @apply bg-primary hover:bg-primary-dark active:scale-95 transition-all duration-150;
   @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-control);
 }
 
-.btn-secondary {
-  @apply inline-flex items-center gap-2 rounded px-4 py-2 font-medium text-sm;
-  @apply bg-civic text-white transition-all duration-150;
-  @apply hover:bg-civic-light active:scale-95;
-  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+.btn-outline {
+  @apply inline-flex items-center gap-2 font-semibold text-sm;
+  @apply border-2 border-primary text-primary hover:bg-primary/5 active:scale-95;
+  @apply transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-control);
 }
 
 .btn-ghost {
-  @apply inline-flex items-center gap-2 rounded px-3 py-1.5 font-medium text-sm;
-  @apply text-civic hover:bg-civic/10 transition-colors duration-150;
+  @apply inline-flex items-center gap-2 font-medium text-sm;
+  @apply text-slate-600 hover:text-primary hover:bg-primary/5 transition-colors duration-150;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-control);
 }
 
-/* ── Stat card ─────────────────────────────────────────────────────────────── */
+.btn-secondary {
+  @apply inline-flex items-center gap-2 font-medium text-sm;
+  @apply bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition-all duration-150;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-control);
+}
+
+/* ── Dashboard card ──────────────────────────────────────────────────────────── */
+.dash-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  padding: 1.25rem 1.5rem;
+}
+
+/* ── Stat card ───────────────────────────────────────────────────────────────── */
 .stat-card {
-  @apply rounded-sm bg-white p-5 shadow-card border-t-4;
-  border-top-color: var(--color-civic);
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  padding: 1.25rem;
 }
 
-/* ── Section heading ───────────────────────────────────────────────────────── */
+/* ── Sidebar nav item ────────────────────────────────────────────────────────── */
+.sidebar-nav-item {
+  @apply flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-control;
+  @apply text-slate-600 hover:text-primary hover:bg-primary/5 transition-all duration-150;
+  @apply cursor-pointer select-none;
+}
+
+.sidebar-nav-item.active {
+  @apply text-primary bg-primary-tint;
+  font-weight: 600;
+}
+
+.sidebar-nav-item.destructive {
+  @apply text-red-600 hover:text-red-700 hover:bg-red-50;
+}
+
+/* ── Section heading ─────────────────────────────────────────────────────────── */
 .section-heading {
-  @apply font-slab text-xl font-semibold text-ink mb-4 flex items-center gap-2;
+  @apply text-lg font-bold text-slate-900 flex items-center gap-2 mb-4;
+  font-family: 'Plus Jakarta Sans', Inter, sans-serif;
 }
 
-/* ── Toast notification ────────────────────────────────────────────────────── */
+/* ── Toast notification ──────────────────────────────────────────────────────── */
 .toast {
-  @apply fixed bottom-6 right-6 z-50 rounded-sm bg-civic text-white px-5 py-3 shadow-lg;
-  @apply text-sm font-medium flex items-center gap-2;
+  @apply fixed bottom-6 right-6 z-50 flex items-center gap-2;
+  @apply bg-primary text-white px-5 py-3 text-sm font-medium;
+  @apply shadow-card-lg;
+  border-radius: var(--radius-control);
   animation: slideInTop 0.3s ease-out;
+}
+
+/* ── Glassmorphic card ───────────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-card);
+}
+
+/* ── Chat bubbles ────────────────────────────────────────────────────────────── */
+.chat-bubble-incoming {
+  background: #F1F5F9;
+  color: var(--color-text-primary);
+  border-radius: 4px 16px 16px 16px;
+}
+
+.chat-bubble-outgoing {
+  background: var(--color-primary);
+  color: white;
+  border-radius: 16px 4px 16px 16px;
+}
+
+/* ── Progress bar animation ──────────────────────────────────────────────────── */
+.progress-bar-fill {
+  animation: progressFill 1s ease-out forwards;
+}
+
+/* ── Hero gradient overlay ───────────────────────────────────────────────────── */
+.hero-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+
+/* ── Wave emoji animation ────────────────────────────────────────────────────── */
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.animate-wave {
+  display: inline-block;
+  animation: wave 2.5s infinite;
+  transform-origin: 70% 70%;
 }

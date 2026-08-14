@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n";
 import Navbar from "@/components/Navbar";
+import { AuthProvider } from "@/lib/auth";
+import { ToastProvider } from "@/lib/toast";
 
 export const metadata: Metadata = {
-  title: "CivicTrack — Civic Grievance & Budgeting Platform",
+  title: "CivicVoice — AI-Powered Civic Issue Reporting & Participatory Budgeting",
   description:
-    "AI-powered civic grievance triage, deduplication, and participatory budgeting for smarter municipal governance.",
+    "CivicVoice helps citizens report civic issues, track progress, and participate in building better communities. AI-powered triage, deduplication, and participatory budgeting.",
 };
 
 export default function RootLayout({
@@ -24,14 +26,19 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Slab:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-paper font-sans text-ink antialiased">
+      <body className="min-h-screen font-sans antialiased" style={{ backgroundColor: "var(--color-bg)", color: "var(--color-text-primary)" }}>
         <I18nProvider>
-          <Navbar />
-          <main className="pt-16">{children}</main>
+          <AuthProvider>
+            <ToastProvider>
+              {/* Navbar is shown on /citizen, /admin, /budget — hides itself on dashboard/landing/auth */}
+              <Navbar />
+              <main>{children}</main>
+            </ToastProvider>
+          </AuthProvider>
         </I18nProvider>
       </body>
     </html>

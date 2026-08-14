@@ -63,3 +63,34 @@ export function interpolate(template: string, vars: Record<string, string | numb
     vars[key] !== undefined ? String(vars[key]) : `{{${key}}}`
   );
 }
+
+/**
+ * Format a ticket timestamp as a relative string ("Just now", "X mins ago")
+ * for recent events, or an absolute locale-aware date-time for older ones.
+ *
+ * Uses Intl.DateTimeFormat(undefined, ...) so the format respects the user's
+ * OS/browser locale — do not hard-code "en-IN" here.
+ *
+ * Returns "—" for missing or malformed input (never throws, never shows "Invalid Date").
+ */
+export function formatTicketTimestamp(dateString?: string | null): string {
+  if (!dateString) return "—";
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  const diffMs = Date.now() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return "Just now";
+
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} min${diffMin === 1 ? "" : "s"} ago`;
+
+  return new Intl.DateTimeFormat(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+}

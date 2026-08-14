@@ -38,7 +38,6 @@ export default function AudioRecorder({ onAudioReady, onAudioClear }: AudioRecor
   const startRecording = useCallback(async () => {
     setErrorMessage("");
 
-    // Check browser support
     if (!navigator.mediaDevices?.getUserMedia) {
       setState("error");
       setErrorMessage(t.recorderUnsupported);
@@ -56,7 +55,6 @@ export default function AudioRecorder({ onAudioReady, onAudioClear }: AudioRecor
       };
 
       recorder.onstop = () => {
-        // Stop all microphone tracks to release the indicator in the browser UI
         stream.getTracks().forEach((t) => t.stop());
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         blobRef.current = blob;
@@ -120,15 +118,20 @@ export default function AudioRecorder({ onAudioReady, onAudioClear }: AudioRecor
     `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
   return (
-    <div className="rounded border border-paper-dark bg-white p-3">
+    <div
+      className="rounded-control border border-slate-200 bg-slate-50 p-3"
+      style={{ borderRadius: "var(--radius-control)" }}
+    >
       {/* Idle state */}
       {state === "idle" && (
         <button
           type="button"
           onClick={startRecording}
-          className="flex items-center gap-2 text-sm text-civic hover:text-civic-light font-medium transition-colors"
+          className="flex items-center gap-2 text-sm text-primary hover:text-primary-dark font-medium transition-colors"
         >
-          <Mic className="h-4 w-4" />
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-tint">
+            <Mic className="h-4 w-4 text-primary" />
+          </span>
           {t.recorderIdle}
         </button>
       )}
@@ -141,10 +144,10 @@ export default function AudioRecorder({ onAudioReady, onAudioClear }: AudioRecor
             <span className="absolute h-4 w-4 rounded-full bg-red-500 animate-ping opacity-75" />
             <span className="h-2.5 w-2.5 rounded-full bg-red-600" />
           </div>
-          <span className="text-sm font-mono text-ink tabular-nums">
+          <span className="text-sm font-mono text-slate-700 tabular-nums">
             {formatTime(elapsedSeconds)}
           </span>
-          <span className="text-xs text-ink/60">{t.recorderRecord}</span>
+          <span className="text-xs text-slate-500">{t.recorderRecord}</span>
           <button
             type="button"
             onClick={stopRecording}
@@ -163,15 +166,17 @@ export default function AudioRecorder({ onAudioReady, onAudioClear }: AudioRecor
           <button
             type="button"
             onClick={togglePlayback}
-            className="flex items-center gap-1.5 text-sm text-civic font-medium"
+            className="flex items-center gap-1.5 text-sm text-primary font-medium hover:text-primary-dark transition-colors"
             aria-label={isPlaying ? "Pause" : "Play recording"}
           >
-            {isPlaying ? (
-              <Pause className="h-4 w-4" />
-            ) : (
-              <Play className="h-4 w-4" />
-            )}
-            <span className="text-xs text-ink/60">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-tint">
+              {isPlaying ? (
+                <Pause className="h-3.5 w-3.5 text-primary" />
+              ) : (
+                <Play className="h-3.5 w-3.5 text-primary" />
+              )}
+            </span>
+            <span className="text-xs text-slate-500">
               {isPlaying ? "Playing…" : `Recording (${formatTime(elapsedSeconds)})`}
             </span>
           </button>
@@ -179,7 +184,7 @@ export default function AudioRecorder({ onAudioReady, onAudioClear }: AudioRecor
             type="button"
             onClick={reRecord}
             className={cn(
-              "ml-auto flex items-center gap-1 text-xs text-ink/50 hover:text-ink/80",
+              "ml-auto flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600",
               "transition-colors"
             )}
           >
