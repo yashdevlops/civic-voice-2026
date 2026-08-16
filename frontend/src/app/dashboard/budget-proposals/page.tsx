@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { useBudgetProposals } from "@/lib/useBudgetProposals";
 import { useToast } from "@/lib/toast";
 
+import { notifyVoteCast } from "@/lib/notificationStore";
+
 export default function BudgetProposals() {
   const [activeTab, setActiveTab] = useState<"Active" | "Past">("Active");
   const { toast } = useToast();
@@ -22,7 +24,9 @@ export default function BudgetProposals() {
     }
     if (hasVotedFor(projectId)) return;
     try {
+      const proj = projects.find((p) => p.id === projectId);
       await voteOnProposal(projectId);
+      notifyVoteCast({ id: projectId, title: proj?.title || "Budget Proposal" });
       toast("Vote registered! Your support has been counted.", "success");
     } catch {
       toast("Vote submitted locally — will confirm once server responds.", "error");

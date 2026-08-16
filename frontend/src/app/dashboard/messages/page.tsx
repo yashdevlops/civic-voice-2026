@@ -30,24 +30,6 @@ const STATIC_CONVERSATIONS: Conversation[] = [
     lastMessage: "Ask me about your complaint status, or...",
     timestamp: "Live",
   },
-  {
-    id: "ward12",
-    name: "Ward 12 Officer Desk",
-    avatar: "🧑‍✈️",
-    role: "Grievance Officer",
-    status: "offline",
-    lastMessage: "No recent messages",
-    timestamp: "1d ago",
-  },
-  {
-    id: "helpdesk",
-    name: "Municipal Helpdesk",
-    avatar: "📞",
-    role: "Support Agent",
-    status: "online",
-    lastMessage: "No recent messages",
-    timestamp: "3h ago",
-  },
 ];
 
 function MessagesContent() {
@@ -135,7 +117,7 @@ function MessagesContent() {
           <h1 className="text-base font-extrabold text-slate-800 font-display">
             Inbox Messages
           </h1>
-          <p className="text-xs text-slate-400">Direct chatbot support & support desks</p>
+          <p className="text-xs text-slate-400">AI-powered civic support</p>
         </div>
 
         <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
@@ -167,7 +149,7 @@ function MessagesContent() {
                     {c.role}
                   </p>
                   <p className="text-xs text-slate-400 truncate mt-0.5 font-medium italic">
-                    {c.id === "civicbot" ? c.lastMessage : "Visual simulation desk"}
+                    {c.lastMessage}
                   </p>
                 </div>
               </button>
@@ -200,20 +182,8 @@ function MessagesContent() {
         </div>
 
         {/* Chat Area Body */}
-        {activeConvId !== "civicbot" ? (
-          /* Placeholder State for Unavailable Conversations */
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-            <AlertCircle className="h-10 w-10 text-slate-400 opacity-40 animate-pulse" />
-            <div className="space-y-1">
-              <h3 className="text-sm font-bold text-slate-700">Desk Unavailable</h3>
-              <p className="text-xs text-slate-400 max-w-xs leading-relaxed font-semibold">
-                This conversation isn't available in this demo yet.
-              </p>
-            </div>
-          </div>
-        ) : (
-          /* Functional CivicBot Chat Thread */
-          <div className="flex-1 flex flex-col min-h-0 bg-slate-50/25">
+        {/* Functional CivicBot Chat Thread — always shown (only one conversation) */}
+        <div className="flex-1 flex flex-col min-h-0 bg-slate-50/25">
             
             {/* Scrollable messages box */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -322,7 +292,6 @@ function MessagesContent() {
             </div>
 
           </div>
-        )}
 
       </div>
     </div>

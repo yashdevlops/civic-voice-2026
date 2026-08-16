@@ -4,41 +4,60 @@ import React, { useState, useEffect } from "react";
 import { User, Mail, Phone, MapPin, ChevronRight, Camera, Shield, Lock, Bell, Globe, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/lib/toast";
+import { useLocation } from "@/context/LocationContext";
 
 export default function Profile() {
   const { user, updateProfile } = useAuth();
   const { toast } = useToast();
+  const { location: sharedLocation, setLocation: setSharedLocation } = useLocation();
 
   // Local Form States
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [location, setLocation] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
 
-  // Hydrate local states once user object is available
+  // Hydrate local states once user object & location context are available
   useEffect(() => {
     if (user) {
       setName(user.name || "");
       setEmail(user.email || "");
       setPhone(user.phone || "");
-      setLocation(user.location || "");
     }
   }, [user]);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (sharedLocation) {
+      setCity(sharedLocation.city || "");
+      setState(sharedLocation.state || "");
+    }
+  }, [sharedLocation]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim()) {
       toast("Name and Email are required fields.", "error");
       return;
     }
 
+    if (!city.trim() || !state.trim()) {
+      toast("Both City and State are required for Default Location.", "error");
+      return;
+    }
+
+    // Update location in shared LocationContext (and persisted profile)
+    await setSharedLocation({ city: city.trim(), state: state.trim() });
+
+    // Update user profile fields
     updateProfile({
       name,
       email,
       phone,
-      location,
+      location: `${city.trim()}, ${state.trim()}`,
     });
-    toast("Profile details updated successfully!", "success");
+
+    toast("Profile details & location updated successfully!", "success");
   };
 
   const handleSettingClick = (setting: string) => {
@@ -132,19 +151,38 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Location */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                Default Location
-              </label>
-              <div className="relative flex items-center w-full">
+            {/* Location (City & State) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                  City
+                </label>
+                <div className="relative flex items-center w-full">
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Bengaluru"
+                    className="civic-input px-4"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                </div>
+              </div>
 
-                <input
-                  type="text"
-                  className="civic-input px-4"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                  State
+                </label>
+                <div className="relative flex items-center w-full">
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Karnataka"
+                    className="civic-input px-4"
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
           </div>

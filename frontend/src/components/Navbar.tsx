@@ -20,8 +20,15 @@ export default function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Don't render the global Navbar inside dashboard routes
-  if (pathname.startsWith("/dashboard") || pathname === "/" || pathname.startsWith("/login") || pathname === "/signup") {
+  // Don't render the global Navbar inside dashboard routes or auth pages
+  if (
+    pathname.startsWith("/dashboard") ||
+    pathname === "/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/admin/login") ||
+    pathname.startsWith("/admin/signup") ||
+    pathname === "/signup"
+  ) {
     return null;
   }
 

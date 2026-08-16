@@ -338,3 +338,216 @@ h1, h2, h3 {
   animation: wave 2.5s infinite;
   transform-origin: 70% 70%;
 }
+
+/* ── Spatial / 3D landing system ─────────────────────────────────────────── */
+
+/* Scroll-indicator pulse */
+@keyframes scrollPulse {
+  0%   { opacity: 0; transform: scaleY(0); transform-origin: top; }
+  40%  { opacity: 1; transform: scaleY(1); transform-origin: top; }
+  60%  { opacity: 1; transform: scaleY(1); transform-origin: bottom; }
+  100% { opacity: 0; transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* Floating badge pulse */
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.25); }
+  50%       { box-shadow: 0 0 0 6px rgba(52,211,153,0.00); }
+}
+
+/* Obsidian/emerald design tokens (landing-only overrides — don't touch dashboard vars) */
+:root {
+  --spatial-obsidian:      #050b14;
+  --spatial-navy:          #0a1420;
+  --spatial-emerald:       #10b981;
+  --spatial-emerald-tint:  #34d399;
+  --spatial-slate-muted:   #94a3b8;
+  --spatial-glass-border:  rgba(52,211,153,0.14);
+  --spatial-glass-bg:      rgba(10,20,32,0.72);
+}
+
+/* TiltCard performance hint */
+.tilt-card {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+/* Landing section transitions — smooth BG changes without flash */
+.landing-section-transition {
+  transition: background-color 0.6s ease;
+}
+
+/* Emerald gradient text utility */
+.text-emerald-gradient {
+  background: linear-gradient(135deg, #34d399 0%, #6ee7b7 50%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow button utility (used by landing CTAs) */
+.btn-glow-emerald {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 0 32px rgba(16,185,129,0.35);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 700;
+}
+.btn-glow-emerald:hover {
+  box-shadow: 0 0 52px rgba(16,185,129,0.55);
+  transform: translateY(-1px);
+}
+.btn-glow-emerald:active {
+  transform: scale(0.97);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCROLL-ZOOM HERO SYSTEM
+   Pinned scroll-scrubbed video + CSS zoom dive hero
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Outer scroll-distance driver */
+.zoom-hero-outer {
+  position: relative;
+  height: 300vh;  /* desktop: 300vh scroll distance */
+}
+
+/* Mobile: shorter scroll distance (swipe covers fewer pixels) */
+@media (max-width: 768px) {
+  .zoom-hero-outer {
+    height: 220vh;
+  }
+}
+
+/* Sticky pin viewport — native CSS pin, zero JS */
+.zoom-hero-sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  background: #050b14; /* obsidian fallback while video loads */
+}
+
+/* ── Video fill ──────────────────────────────────────────────────────────── */
+.zoom-hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 62%;
+  /* transform and transformOrigin are driven by inline style from React */
+  will-change: transform;
+  /* Prevent any stray click/drag on the video element */
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Vignette: dark radial corners ──────────────────────────────────────── */
+.zoom-hero-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    transparent 35%,
+    rgba(3, 6, 14, 0.55) 70%,
+    rgba(3, 6, 14, 0.85) 100%
+  );
+  /* opacity driven by inline style */
+  will-change: opacity;
+}
+
+/* ── Warm haze: peach/pink blobs matching the sunset sky band ────────────── */
+.zoom-hero-haze {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Two soft radial blobs: warm peach upper-left, pink-orange upper-right */
+  background:
+    radial-gradient(ellipse 55% 38% at 28% 22%, rgba(255, 170, 100, 0.22) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 32% at 72% 18%, rgba(255, 120, 80, 0.18) 0%, transparent 65%);
+  filter: blur(32px);
+  will-change: opacity;
+}
+
+/* ── Emerald bloom: brand accent at river/bridge level ───────────────────── */
+.zoom-hero-bloom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 20%;
+  height: 35%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 60% 80% at 50% 80%,
+    rgba(16, 185, 129, 0.28) 0%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  filter: blur(20px);
+  will-change: opacity;
+}
+
+/* ── Film grain: subtle texture to prevent gradient banding ─────────────── */
+.zoom-hero-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  /* SVG feTurbulence-based grain encoded as data URI */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* ── HUD absolute positioning ────────────────────────────────────────────── */
+.zoom-hero-hud {
+  position: absolute;
+  bottom: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 48rem;
+  padding: 0 1rem;
+  z-index: 20;
+  will-change: opacity;
+}
+
+@media (max-width: 640px) {
+  .zoom-hero-hud {
+    bottom: 3.5rem;
+  }
+}
+
+/* ── Divide colors for HUD grid (warm-tinted) ────────────────────────────── */
+.zoom-hero-hud .divide-x > * + * {
+  border-left-color: rgba(255, 255, 255, 0.07);
+}
+.zoom-hero-hud .divide-y > * + * {
+  border-top-color: rgba(255, 255, 255, 0.07);
+}
+
+/* ── HUD Live Command-Center Keyframe Animations ────────────────────────────── */
+@keyframes hudSweep {
+  0% { transform: translateX(-150%) rotate(-45deg); }
+  100% { transform: translateX(250%) rotate(-45deg); }
+}
+
+@keyframes gridDrift {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 56px; }
+}
+
+@keyframes heartbeatRing {
+  0% { transform: scale(1); opacity: 0.8; }
+  60% { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes hudBreathe {
+  0%, 100% { box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6); }
+  50% { box-shadow: 0 20px 60px -15px rgba(6,182,212,0.15); }
+}

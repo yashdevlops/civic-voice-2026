@@ -24,6 +24,10 @@ import {
 import Logo from "./Logo";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { useLocation } from "@/context/LocationContext";
+import { useCurrentPeriod } from "@/hooks/useCurrentPeriod";
+import { useDynamicDate } from "@/hooks/useDynamicDate";
+import { getUnreadCount, NOTIF_SYNC_EVENT } from "@/lib/notificationStore";
 
 // ── Navigation items ────────────────────────────────────────────────────────
 
@@ -91,6 +95,18 @@ function NavItem({
 
 function Sidebar({ onClose }: { onClose?: () => void }) {
   const { logout, user } = useAuth();
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+
+  useEffect(() => {
+    setUnreadNotifCount(getUnreadCount());
+    const refresh = () => setUnreadNotifCount(getUnreadCount());
+    window.addEventListener(NOTIF_SYNC_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener(NOTIF_SYNC_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
   
   return (
     <aside className="flex h-full w-full flex-col bg-white border-r border-slate-100">
@@ -109,9 +125,17 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-        {NAV_ITEMS.map((item) => (
-          <NavItem key={item.href + item.label} {...item} onClick={onClose} />
-        ))}
+        {NAV_ITEMS.map((item) => {
+          const badgeVal = item.label === "Notifications" ? unreadNotifCount : item.badge;
+          return (
+            <NavItem
+              key={item.href + item.label}
+              {...item}
+              badge={badgeVal}
+              onClick={onClose}
+            />
+          );
+        })}
       </nav>
 
       {/* Bottom: profile/settings + divider + logout */}
@@ -159,6 +183,9 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
 
 function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { user } = useAuth();
+  const { location } = useLocation();
+  const period = useCurrentPeriod();
+  const dateInfo = useDynamicDate();
   
   const initials = user?.name
     ? user.name
@@ -180,26 +207,29 @@ function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* Search bar */}
-      <div className="hidden sm:flex flex-1 max-w-sm items-center gap-2 rounded-control border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-400">
-        <Search className="h-4 w-4 shrink-0" />
-        <span>Search…</span>
-      </div>
+      {/* Right side controls */}
 
       {/* Right side */}
       <div className="flex items-center gap-2 ml-auto">
-        {/* Location selector */}
-        <button className="hidden sm:flex items-center gap-1.5 text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-control px-3 py-1.5 hover:bg-slate-100 transition-colors">
-          <MapPin className="h-3.5 w-3.5 text-primary" />
-          {user?.location?.split(",")[0] || "Bengaluru"}
-          <ChevronDown className="h-3.5 w-3.5" />
-        </button>
+        {/* Location selector - routes to profile settings or displays current location */}
+        <Link
+          href="/dashboard/profile"
+          className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-600 bg-slate-50 border border-slate-200 rounded-control px-3 py-1.5 hover:bg-slate-100 hover:text-primary transition-colors"
+          title={`Current location: ${location.label}. Click to edit in Profile Settings.`}
+        >
+          <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+          <span>{location.city}</span>
+          <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+        </Link>
 
         {/* Period selector */}
-        <button className="hidden sm:flex items-center gap-1.5 text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-control px-3 py-1.5 hover:bg-slate-100 transition-colors">
-          This Month
-          <ChevronDown className="h-3.5 w-3.5" />
-        </button>
+        <div
+          className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-600 bg-slate-50 border border-slate-200 rounded-control px-3 py-1.5"
+          title={`Live reporting date: ${dateInfo.formattedDate}`}
+        >
+          <span>{dateInfo.formattedDate}</span>
+          <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+        </div>
 
         {/* Notification bell */}
         <Link

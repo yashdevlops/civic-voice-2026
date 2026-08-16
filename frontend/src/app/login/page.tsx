@@ -277,9 +277,11 @@ function LoginForm() {
         <div className="absolute inset-0 bg-slate-950/50" />
 
         {/* Floating Logo overlay top-left */}
-        <div className="relative z-10 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-card border border-white/40 shadow-lg flex items-center gap-1.5">
-          <Logo size="sm" variant="dark" />
-        </div>
+        <Link href="/" className="relative z-50 cursor-pointer block">
+          <div className="bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-card border border-white/40 shadow-lg flex items-center gap-1.5 hover:bg-white transition-colors">
+            <Logo size="sm" variant="dark" href="/" />
+          </div>
+        </Link>
 
         <div className="absolute bottom-10 left-10 right-10 text-white z-10 space-y-2">
           <h2 className="text-2xl font-extrabold font-display leading-tight">
@@ -294,8 +296,10 @@ function LoginForm() {
       {/* Right Pane: centered form card */}
       <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center items-center px-6 sm:px-12 py-12 relative">
         {/* Mobile top logo */}
-        <div className="lg:hidden absolute top-6 left-6">
-          <Logo size="sm" variant="dark" />
+        <div className="lg:hidden absolute top-6 left-6 z-50">
+          <Link href="/" className="cursor-pointer block">
+            <Logo size="sm" variant="dark" href="/" />
+          </Link>
         </div>
 
         <div className="w-full max-w-[440px] space-y-6">
@@ -466,10 +470,16 @@ function LoginForm() {
 
           <p className="text-center text-xs font-semibold text-slate-500">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-primary hover:underline">
+            <Link href="/signup" className="text-primary hover:underline font-bold">
               Sign Up
             </Link>
           </p>
+
+          <div className="pt-2 text-center">
+            <Link href="/" className="text-xs text-slate-400 hover:text-primary inline-flex items-center gap-1 font-semibold transition-colors">
+              ← Back to Home
+            </Link>
+          </div>
         </div>
       </div>
 

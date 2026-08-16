@@ -1,4 +1,5 @@
 import { GrievanceTicket, IssueStatus, NewGrievanceInput, CATEGORY_OPTIONS } from "./grievance";
+import { addNotification } from "./notificationStore";
 
 export const GRIEVANCE_STORE_KEY = "civic_voice_grievances_master_v3";
 export const GRIEVANCE_SYNC_EVENT = "civic_voice_sync_event_v3";
@@ -292,6 +293,19 @@ export function addGrievance(input: NewGrievanceInput): GrievanceTicket {
   
   console.log("[grievanceStore] added", newTicket.id, "citizen:", newTicket.citizenEmail);
 
+  // Trigger master notification
+  try {
+    addNotification({
+      type: "complaint_status",
+      title: "Complaint Registered",
+      message: `Your complaint ${ticketId} (${newTicket.title}) was successfully registered.`,
+      relatedId: ticketId,
+      iconType: "info",
+    });
+  } catch {
+    // safe fallback
+  }
+
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(GRIEVANCE_SYNC_EVENT));
   }
@@ -334,6 +348,19 @@ export function updateGrievanceStatus(
 
   payload.tickets[idx] = ticket;
   localStorage.setItem(GRIEVANCE_STORE_KEY, JSON.stringify(payload));
+
+  // Trigger status update notification
+  try {
+    addNotification({
+      type: "complaint_status",
+      title: "Status Updated",
+      message: `Your complaint ${ticket.id} status changed to ${status.toUpperCase()}.`,
+      relatedId: ticket.id,
+      iconType: "info",
+    });
+  } catch {
+    // safe fallback
+  }
 
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(GRIEVANCE_SYNC_EVENT));

@@ -24,6 +24,7 @@ import {
   migrateLegacyGrievanceData,
   GRIEVANCE_SYNC_EVENT
 } from "@/lib/grievanceStore";
+import { notifyComplaintSubmitted } from "@/lib/notificationStore";
 import ComplaintCard from "@/components/citizen/ComplaintCard";
 
 type Tab = "submit" | "tickets";
@@ -101,6 +102,9 @@ function CitizenContent() {
         landmark: landmark.trim() ? landmark.trim() : undefined,
         imageUrl: imageUrl.trim() ? imageUrl.trim() : undefined,
       });
+
+      // Dispatch real notification event
+      notifyComplaintSubmitted({ id: ticket.id, title: ticket.title });
 
       setSuccessTicketId(ticket.id);
       
@@ -320,17 +324,67 @@ function CitizenContent() {
                   </div>
 
                   <div>
-                    <label htmlFor="form-image" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                      Photo URL (Optional)
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                      Upload Photo (Optional)
                     </label>
-                    <input
-                      id="form-image"
-                      type="url"
-                      className="civic-input px-4"
-                      placeholder="https://example.com/pothole.jpg"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                    />
+                    {imageUrl ? (
+                      <div className="relative rounded-lg border border-slate-200 p-2 bg-slate-50 flex items-center gap-3">
+                        <img
+                          src={imageUrl}
+                          alt="Evidence Preview"
+                          className="h-14 w-14 object-cover rounded-md border border-slate-200 shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-slate-700 truncate">Photo Attached</p>
+                          <p className="text-[10px] text-emerald-600 font-semibold">Ready for upload</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setImageUrl("")}
+                          className="p-1.5 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Remove Photo"
+                        >
+                          <AlertCircle className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="relative border-2 border-dashed border-slate-200 hover:border-primary/50 rounded-lg p-3 text-center transition-colors bg-slate-50/50 hover:bg-emerald-50/30 cursor-pointer">
+                        <input
+                          id="form-image"
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (file.size > 5 * 1024 * 1024) {
+                              alert("File size exceeds 5MB limit. Please choose a smaller image.");
+                              return;
+                            }
+                            if (!file.type.startsWith("image/")) {
+                              alert("Please select a valid image file.");
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              if (typeof reader.result === "string") {
+                                setImageUrl(reader.result);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }}
+                        />
+                        <div className="flex flex-col items-center justify-center space-y-1">
+                          <PlusCircle className="h-5 w-5 text-slate-400" />
+                          <span className="text-xs font-semibold text-slate-600">
+                            Click or drag photo here
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            JPG, PNG, WEBP up to 5MB
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -4,6 +4,7 @@ import { I18nProvider } from "@/lib/i18n";
 import Navbar from "@/components/Navbar";
 import { AuthProvider } from "@/lib/auth";
 import { ToastProvider } from "@/lib/toast";
+import { LocationProvider } from "@/context/LocationContext";
 
 export const metadata: Metadata = {
   title: "CivicVoice — AI-Powered Civic Issue Reporting & Participatory Budgeting",
@@ -33,11 +34,13 @@ export default function RootLayout({
       <body className="min-h-screen font-sans antialiased" style={{ backgroundColor: "var(--color-bg)", color: "var(--color-text-primary)" }}>
         <I18nProvider>
           <AuthProvider>
-            <ToastProvider>
-              {/* Navbar is shown on /citizen, /admin, /budget — hides itself on dashboard/landing/auth */}
-              <Navbar />
-              <main>{children}</main>
-            </ToastProvider>
+            <LocationProvider>
+              <ToastProvider>
+                {/* Navbar is shown on /citizen, /admin, /budget — hides itself on dashboard/landing/auth */}
+                <Navbar />
+                <main>{children}</main>
+              </ToastProvider>
+            </LocationProvider>
           </AuthProvider>
         </I18nProvider>
       </body>
