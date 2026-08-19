@@ -55,8 +55,11 @@ export default function TopCategoriesGauge({
     try {
       const live = getGrievances();
       live.forEach((g) => {
-        if (catMap[g.category]) {
-          catMap[g.category].raw += 1;
+        const catName = g.departmentCode === "roads_potholes" ? "Roads & Potholes" :
+                        g.departmentCode === "water_supply" ? "Water Supply" :
+                        g.departmentCode === "street_lights" ? "Street Lights" : "Sanitation";
+        if (catMap[catName]) {
+          catMap[catName].raw += 1;
         }
       });
     } catch {

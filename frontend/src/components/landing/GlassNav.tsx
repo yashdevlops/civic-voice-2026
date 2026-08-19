@@ -165,24 +165,30 @@ export default function GlassNav() {
               })}
             </nav>
 
-            {/* Section 3 — Sign In only (Get Started removed) */}
-            <div className="hidden md:flex items-center">
+            {/* Desktop portal links */}
+            <div className="hidden md:flex items-center gap-2">
               <Link
-                href="/login"
+                href="/citizen"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
+              >
+                Citizen Portal
+              </Link>
+              <Link
+                href="/municipal/dashboard"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
+              >
+                Municipal Officer
+              </Link>
+              <Link
+                href="/dashboard"
                 id="nav-sign-in"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white transition-all duration-150"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-all duration-150"
                 style={{
                   background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                   boxShadow: "0 0 20px rgba(16,185,129,0.28)",
                 }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 32px rgba(16,185,129,0.50)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 20px rgba(16,185,129,0.28)";
-                }}
               >
-                Sign In
+                Dashboard
               </Link>
             </div>
 

@@ -24,6 +24,82 @@ export default function LandingPage() {
       {/* ── About ──────────────────────────────────────────────────────── */}
       <AboutSection />
 
+      {/* ── Quick Portal Access Section ─────────────────────────────────── */}
+      <section className="py-16 bg-slate-900 border-t border-b border-slate-800 text-white font-sans">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="text-center space-y-2">
+            <span className="text-xs font-extrabold text-emerald-400 tracking-widest uppercase">
+              CivicVoice Command Portals
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-display">
+              Access Your Dedicated Portal
+            </h2>
+            <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
+              Select your role to access automated ward triage, emergency broadcasting, and civic issue resolution.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Citizen Portal Card */}
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between space-y-4 hover:border-emerald-500/50 transition-all shadow-lg">
+              <div className="space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-700/50 flex items-center justify-center text-xl">
+                  📢
+                </div>
+                <h3 className="text-lg font-bold text-white font-display">Citizen Portal</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Report civic issues with GPS ward auto-detection, AI category suggestions, and real-time SLA tracking.
+                </p>
+              </div>
+              <a
+                href="/citizen"
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs text-center transition-all shadow-md block"
+              >
+                Launch Citizen Portal →
+              </a>
+            </div>
+
+            {/* Municipal Officer Portal Card */}
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between space-y-4 hover:border-blue-500/50 transition-all shadow-lg">
+              <div className="space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-blue-950 text-blue-400 border border-blue-700/50 flex items-center justify-center text-xl">
+                  🏢
+                </div>
+                <h3 className="text-lg font-bold text-white font-display">Municipal Portal</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Department operational dashboard, field worker dispatch, BOQ material estimation, and proof verification.
+                </p>
+              </div>
+              <a
+                href="/municipal/dashboard"
+                className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs text-center transition-all shadow-md block"
+              >
+                Launch Municipal Dashboard →
+              </a>
+            </div>
+
+            {/* Commissioner Command Card */}
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between space-y-4 hover:border-red-500/50 transition-all shadow-lg">
+              <div className="space-y-2">
+                <div className="w-10 h-10 rounded-xl bg-red-950 text-red-400 border border-red-700/50 flex items-center justify-center text-xl">
+                  🚨
+                </div>
+                <h3 className="text-lg font-bold text-white font-display">Commissioner Command</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Real-time emergency broadcast advisory dispatch, ward outage overrides, and contractor quality audit.
+                </p>
+              </div>
+              <a
+                href="/commissioner/broadcast"
+                className="w-full py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs text-center transition-all shadow-md block"
+              >
+                Launch Commissioner Command →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── How It Works (dark spatial section) ───────────────────────── */}
       <WorkflowSection />
 

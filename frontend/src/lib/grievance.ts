@@ -1,69 +1,189 @@
-export type IssueCategory =
-  | "Roads & Potholes" | "Water Supply" | "Cleanliness"
-  | "Street Lights" | "Public Safety" | "Parks & Recreation" | "Other";
+// ── Municipal Departments & Data Schema ───────────────────────────────────────
 
-export type IssuePriority = "Low" | "Medium" | "High" | "Critical";
-export type IssueStatus = "Pending" | "Under Review" | "In Progress" | "Resolved" | "Rejected";
-export const STATUS_ORDER: IssueStatus[] = ["Pending", "Under Review", "In Progress", "Resolved", "Rejected"];
-export const CATEGORY_OPTIONS: IssueCategory[] = [
-  "Roads & Potholes", "Water Supply", "Cleanliness",
-  "Street Lights", "Public Safety", "Parks & Recreation", "Other",
-];
+export type MunicipalDeptCode =
+  | 'roads_potholes'
+  | 'water_supply'
+  | 'cleanliness'
+  | 'street_lights'
+  | 'public_safety'
+  | 'parks_recreation';
 
-// SLA response targets, used both for citizen-facing display and by CivicBot's FAQ answers
-export const CATEGORY_SLA_HOURS: Record<IssueCategory, number> = {
-  "Roads & Potholes": 48,
-  "Water Supply": 24,
-  "Cleanliness": 48,
-  "Street Lights": 36,
-  "Public Safety": 12,
-  "Parks & Recreation": 72,
-  "Other": 72,
+export interface MunicipalDepartment {
+  code: MunicipalDeptCode;
+  name: string;
+  icon: string;
+  description: string;
+  defaultSlaHours: number;
+}
+
+export const MUNICIPAL_DEPARTMENTS: Record<MunicipalDeptCode, MunicipalDepartment> = {
+  roads_potholes: {
+    code: 'roads_potholes',
+    name: 'Roads & Potholes (Engineering)',
+    icon: '🕳️',
+    description: 'Road repairs, potholes, bridges, and footpaths',
+    defaultSlaHours: 72,
+  },
+  water_supply: {
+    code: 'water_supply',
+    name: 'Water Supply & Sewerage',
+    icon: '💧',
+    description: 'Pipeline leaks, contaminated water, and drainage overflow',
+    defaultSlaHours: 48,
+  },
+  cleanliness: {
+    code: 'cleanliness',
+    name: 'Cleanliness & Solid Waste',
+    icon: '🗑️',
+    description: 'Garbage accumulation, dump yard clearance, and sanitization',
+    defaultSlaHours: 24,
+  },
+  street_lights: {
+    code: 'street_lights',
+    name: 'Street Lights & Electrical',
+    icon: '💡',
+    description: 'Broken streetlights, faulty poles, and power hazards',
+    defaultSlaHours: 36,
+  },
+  public_safety: {
+    code: 'public_safety',
+    name: 'Public Safety & Enforcement',
+    icon: '🚨',
+    description: 'Illegal encroachment, stray animals, and public hazards',
+    defaultSlaHours: 24,
+  },
+  parks_recreation: {
+    code: 'parks_recreation',
+    name: 'Parks & Recreation',
+    icon: '🌲',
+    description: 'Public parks, fallen trees, and municipal grounds',
+    defaultSlaHours: 96,
+  },
 };
 
-export interface StatusHistoryEntry {
-  status: IssueStatus;
-  changedAt: string;
-  note?: string;
-  changedByOfficerId: string;
-}
+// 5-Stage Operational Pipeline + Lifecycle
+export type ComplaintStatus =
+  | 'NEW'
+  | 'ASSIGNED'
+  | 'IN_PROGRESS'
+  | 'OVERDUE'
+  | 'RESOLVED'
+  | 'CLOSED'
+  | 'REOPENED';
+
+export type PriorityLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export interface GrievanceTicket {
-  id: string;                 // "TKT-{year}-{4-digit padded}"
+  id: string; // Format: TKT-2026-XXXX
+  citizenId: string;
   citizenName: string;
-  citizenEmail: string;       // used to scope "my tickets"/"my complaints" views
-  citizenPhone?: string;
+  citizenPhone: string;
   title: string;
   description: string;
-  category: IssueCategory;
-  priority: IssuePriority;
-  status: IssueStatus;
-  location: string;
+  mediaUrls: string[];
+
+  // Location & Ward
+  latitude: number;
+  longitude: number;
+  addressText: string;
   landmark?: string;
-  imageUrl?: string;
-  upvotes: number;            // starts at 1 on creation
-  department: "Central Municipal Administration";
-  assignedOfficer: string | null;
+  wardId: string; // e.g. "BMC Ward 12"
+  wardNumber: number; // e.g. 12
+
+  // Routing & Assignment
+  departmentCode: MunicipalDeptCode;
+  assignedOfficerName?: string;
+  assignedOfficerRole?: string; // e.g., "Junior Engineer (JE)", "Sanitary Inspector"
+
+  // Lifecycle & SLA
+  status: ComplaintStatus;
+  priority: PriorityLevel;
   createdAt: string;
   updatedAt: string;
-  adminNotes: StatusHistoryEntry[];
+  slaDeadlineAt: string; // ISO Timestamp
+
+  // Proof of Work & Verification
+  resolutionProof?: {
+    photoUrl: string;
+    remarks: string;
+    resolvedAt: string;
+    officerName: string;
+  };
+  citizenVerification?: 'pending' | 'confirmed' | 'reopened';
+  reopenReason?: string;
+  reopenedCount: number;
+
+  // Community Upvoting / Duplicates
+  supporterIds: string[];
+  upvoteCount: number;
 }
 
-export type NewGrievanceInput = Omit<
-  GrievanceTicket,
-  "id" | "createdAt" | "updatedAt" | "department" | "status" | "adminNotes" | "assignedOfficer" | "upvotes"
->;
+export interface DistrictClusterAlert {
+  id: string;
+  departmentCode: MunicipalDeptCode;
+  departmentName: string;
+  categoryLabel: string;
+  affectedWards: string[];
+  unresolvedCount: number;
+  citizensAffected: number;
+  summary: string;
+  createdAt: string;
+  status: 'ACTIVE' | 'ACKNOWLEDGED' | 'RESOLVED';
+}
 
-// Compact badge labels for tight UI spots — display-only, NEVER stored.
-export function getCategoryShortLabel(category: IssueCategory): string {
-  const map: Record<IssueCategory, string> = {
-    "Roads & Potholes": "Roads",
-    "Water Supply": "Water Supply",
-    "Cleanliness": "Cleanliness",
-    "Street Lights": "Street Lights",
-    "Public Safety": "Public Safety",
-    "Parks & Recreation": "Parks",
-    "Other": "Other",
-  };
-  return map[category];
+// Compatibility alias for legacy category queries
+export type IssueCategory =
+  | "Roads & Potholes"
+  | "Water Supply"
+  | "Cleanliness"
+  | "Street Lights"
+  | "Public Safety"
+  | "Parks & Recreation"
+  | "Other";
+
+export type IssuePriority = PriorityLevel;
+export type IssueStatus = ComplaintStatus;
+
+export const CATEGORY_OPTIONS: IssueCategory[] = [
+  "Roads & Potholes",
+  "Water Supply",
+  "Cleanliness",
+  "Street Lights",
+  "Public Safety",
+  "Parks & Recreation",
+  "Other",
+];
+
+export const CATEGORY_TO_DEPT_CODE: Record<IssueCategory, MunicipalDeptCode> = {
+  "Roads & Potholes": "roads_potholes",
+  "Water Supply": "water_supply",
+  "Cleanliness": "cleanliness",
+  "Street Lights": "street_lights",
+  "Public Safety": "public_safety",
+  "Parks & Recreation": "parks_recreation",
+  "Other": "cleanliness",
+};
+
+export const DEPT_CODE_TO_CATEGORY: Record<MunicipalDeptCode, IssueCategory> = {
+  roads_potholes: "Roads & Potholes",
+  water_supply: "Water Supply",
+  cleanliness: "Cleanliness",
+  street_lights: "Street Lights",
+  public_safety: "Public Safety",
+  parks_recreation: "Parks & Recreation",
+};
+
+export function getCategoryIcon(cat: IssueCategory | MunicipalDeptCode): string {
+  if (cat in MUNICIPAL_DEPARTMENTS) {
+    return MUNICIPAL_DEPARTMENTS[cat as MunicipalDeptCode].icon;
+  }
+  const code = CATEGORY_TO_DEPT_CODE[cat as IssueCategory];
+  return MUNICIPAL_DEPARTMENTS[code]?.icon || "📋";
+}
+
+export function getCategoryShortLabel(cat: IssueCategory | MunicipalDeptCode): string {
+  if (cat in MUNICIPAL_DEPARTMENTS) {
+    return MUNICIPAL_DEPARTMENTS[cat as MunicipalDeptCode].name.split(" ")[0];
+  }
+  return String(cat).split(" ")[0];
 }

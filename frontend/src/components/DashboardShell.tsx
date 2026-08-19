@@ -153,26 +153,34 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
         </button>
       </div>
 
-      {/* Old routes — accessible from sidebar */}
+      {/* Operations — role-based portal links */}
       <div className="px-3 pb-3">
         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest px-3 mb-1">
-          Operations
+          Civic Portals
         </p>
-        <Link
-          href="/admin"
-          className="sidebar-nav-item text-slate-500"
-          onClick={onClose}
-        >
-          <BarChart3 style={{ width: 18, height: 18 }} />
-          <span>Admin Dashboard</span>
-        </Link>
         <Link
           href="/citizen"
           className="sidebar-nav-item text-slate-500"
           onClick={onClose}
         >
           <FileText style={{ width: 18, height: 18 }} />
-          <span>Report an Issue</span>
+          <span>Citizen Portal</span>
+        </Link>
+        <Link
+          href="/municipal/dashboard"
+          className="sidebar-nav-item text-slate-500"
+          onClick={onClose}
+        >
+          <BarChart3 style={{ width: 18, height: 18 }} />
+          <span>Municipal Portal</span>
+        </Link>
+        <Link
+          href="/commissioner/dashboard"
+          className="sidebar-nav-item text-slate-500"
+          onClick={onClose}
+        >
+          <Search style={{ width: 18, height: 18 }} />
+          <span>Commissioner Suite</span>
         </Link>
       </div>
     </aside>

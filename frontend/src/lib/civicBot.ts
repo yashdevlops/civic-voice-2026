@@ -1,8 +1,9 @@
 import {
-  CATEGORY_SLA_HOURS,
-  IssueCategory
+  MUNICIPAL_DEPARTMENTS,
+  MunicipalDeptCode,
+  GrievanceTicket,
 } from "./grievance";
-import { getGrievancesByCitizenEmail } from "./grievanceStore";
+import { getGrievancesByCitizen } from "./grievanceStore";
 
 export interface ChatMessage {
   id: string;
@@ -24,14 +25,14 @@ export function generateBotResponse(userMessage: string, citizenEmail: string): 
 
   // 1. Emergency Helpline Check
   if (cleanMsg.includes("emergency") || cleanMsg.includes("helpline")) {
-    return "For genuine emergencies, please call your local emergency services. For non-urgent municipal issues, our simulated helpline in this demo is 1800-XXX-XXXX.";
+    return "For genuine emergencies, please call your local emergency services (112). For BMC municipal issues, the toll-free helpline is 1800-345-0083.";
   }
 
   // 2. Status of Latest Ticket
   if (cleanMsg.includes("status") && (cleanMsg.includes("latest") || cleanMsg.includes("recent"))) {
-    const list = getGrievancesByCitizenEmail(citizenEmail);
+    const list = getGrievancesByCitizen(citizenEmail);
     if (list.length === 0) {
-      return "You haven't filed any complaints yet. Head to Report an Issue to file your first one!";
+      return "You haven't filed any complaints yet. Head to Citizen Portal to report your first issue!";
     }
     // Sort by createdAt descending
     const sorted = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -41,25 +42,25 @@ export function generateBotResponse(userMessage: string, citizenEmail: string): 
       month: "short",
       year: "numeric"
     });
-    return `Your most recent ticket is ${latest.id} — "${latest.title}" — currently ${latest.status}. Filed on ${formattedDate}.`;
+    return `Your most recent ticket is ${latest.id} — "${latest.title}" — currently ${latest.status}. Logged on ${formattedDate}.`;
   }
 
   // 3. Show All Complaints
   if (cleanMsg.includes("complaints") || cleanMsg.includes("tickets") || cleanMsg.includes("my issues")) {
-    const list = getGrievancesByCitizenEmail(citizenEmail);
+    const list = getGrievancesByCitizen(citizenEmail);
     if (list.length === 0) {
-      return "You haven't filed any complaints yet. Head to Report an Issue to file your first one!";
+      return "You haven't filed any complaints yet. Head to Citizen Portal to file one!";
     }
-    const lines = list.map((t) => `- ${t.id}: "${t.title}" (${t.status})`);
+    const lines = list.map((t: GrievanceTicket) => `- ${t.id}: "${t.title}" (${t.status})`);
     return `Here are your registered complaints:\n\n${lines.join("\n")}`;
   }
 
   // 4. SLA Response Times
   if (cleanMsg.includes("sla") || cleanMsg.includes("response time") || cleanMsg.includes("how long")) {
-    const lines = Object.entries(CATEGORY_SLA_HOURS).map(
-      ([cat, hours]) => `- ${cat}: ${hours}h`
+    const lines = Object.values(MUNICIPAL_DEPARTMENTS).map(
+      (d) => `- ${d.name}: ${d.defaultSlaHours}h`
     );
-    return `Typical response targets:\n\n${lines.join("\n")}`;
+    return `BMC Department SLA Response Targets:\n\n${lines.join("\n")}`;
   }
 
   // 5. How to Report X
@@ -73,26 +74,15 @@ export function generateBotResponse(userMessage: string, citizenEmail: string): 
       cleanMsg.includes("garbage") ||
       cleanMsg.includes("sanitation"))
   ) {
-    let category: IssueCategory = "Other";
-    if (cleanMsg.includes("water") || cleanMsg.includes("pipe")) {
-      category = "Water Supply";
-    } else if (cleanMsg.includes("pothole") || cleanMsg.includes("road")) {
-      category = "Roads & Potholes";
-    } else if (cleanMsg.includes("light")) {
-      category = "Street Lights";
-    } else if (cleanMsg.includes("garbage") || cleanMsg.includes("sanitation")) {
-      category = "Cleanliness";
-    }
-
-    return `To report a ${category} issue, go to Report an Issue, select '${category}' as the category, add a location and description, and submit. You'll get a ticket ID instantly.`;
+    return `To report an issue, open the Citizen Portal, fill in the details (with auto-detected BMC ward), and submit. Your report will be routed to the respective BMC Department instantly.`;
   }
 
-  // 6. Greetings (Whole-word match)
+  // 6. Greetings
   const isGreeting = /\b(hi|hello|hey)\b/i.test(cleanMsg);
   if (isGreeting) {
-    return "Hello! I'm CivicBot, your civic assistant. I can check your ticket status, explain SLAs, or guide you through reporting an issue. What do you need?";
+    return "Hello! I'm CivicBot, your BMC civic assistant. I can check your ticket status, explain SLAs, or guide you through reporting an issue. What do you need?";
   }
 
   // 7. Fallback
-  return "I'm not sure I understood that. Try asking about your ticket status, how to report an issue, or our response time SLAs — or tap one of the suggestions below.";
+  return "I'm not sure I understood that. Try asking about your ticket status, how to report an issue, or response time SLAs — or tap one of the quick suggestions below.";
 }

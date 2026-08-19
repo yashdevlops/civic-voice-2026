@@ -14,10 +14,10 @@ interface StatItem {
 }
 
 const STATS: StatItem[] = [
-  { rawValue: 250,  suffix: "K+", label: "Issues Reported",    icon: MapPin      },
-  { rawValue: 120,  suffix: "K+", label: "Resolved",            icon: CheckCircle2 },
-  { rawValue: 850,  suffix: "+",  label: "Communities",         icon: Users        },
-  { rawValue: 95,   suffix: "%",  label: "Transparency",        icon: ShieldCheck  },
+  { rawValue: 250, suffix: "K+", label: "Issues Reported", icon: MapPin },
+  { rawValue: 120, suffix: "K+", label: "Resolved", icon: CheckCircle2 },
+  { rawValue: 850, suffix: "+", label: "Communities", icon: Users },
+  { rawValue: 95, suffix: "%", label: "Transparency", icon: ShieldCheck },
 ];
 
 /* ─── Animated stat cell ─────────────────────────────────────────────────── */
@@ -47,9 +47,9 @@ function StatCell({ stat, visible }: { stat: StatItem; visible: boolean }) {
 /* ─── Hero3D ─────────────────────────────────────────────────────────────── */
 export default function Hero3D() {
   const sectionRef = useRef<HTMLElement>(null);
-  const layerBgRef  = useRef<HTMLDivElement>(null);
+  const layerBgRef = useRef<HTMLDivElement>(null);
   const layerMidRef = useRef<HTMLDivElement>(null);
-  const rafRef      = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   // Smooth mouse/gyro state accumulated in a ref — never triggers re-renders
   const mouseRef = useRef({ mx: 0, my: 0, tx: 0, ty: 0 });

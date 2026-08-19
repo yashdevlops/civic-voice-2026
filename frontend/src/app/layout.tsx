@@ -31,12 +31,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen font-sans antialiased" style={{ backgroundColor: "var(--color-bg)", color: "var(--color-text-primary)" }}>
+      <body className="min-h-screen bg-slate-900 text-slate-100 antialiased">
         <I18nProvider>
           <AuthProvider>
             <LocationProvider>
               <ToastProvider>
-                {/* Navbar is shown on /citizen, /admin, /budget — hides itself on dashboard/landing/auth */}
                 <Navbar />
                 <main>{children}</main>
               </ToastProvider>

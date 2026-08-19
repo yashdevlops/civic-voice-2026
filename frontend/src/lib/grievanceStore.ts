@@ -1,222 +1,30 @@
-import { GrievanceTicket, IssueStatus, NewGrievanceInput, CATEGORY_OPTIONS } from "./grievance";
+import {
+  GrievanceTicket,
+  ComplaintStatus,
+  PriorityLevel,
+  MunicipalDeptCode,
+  MUNICIPAL_DEPARTMENTS,
+  DistrictClusterAlert,
+} from "./grievance";
+import { getInitialSeedTickets } from "./seedData";
 import { addNotification } from "./notificationStore";
 
-export const GRIEVANCE_STORE_KEY = "civic_voice_grievances_master_v3";
-export const GRIEVANCE_SYNC_EVENT = "civic_voice_sync_event_v3";
-const MIGRATION_FLAG_KEY = "civic_voice_migration_v4_done";
+export const GRIEVANCE_STORE_KEY = "cv_grievances_master_v6";
+export const GRIEVANCE_SYNC_EVENT = "cv_grievance_sync_v6";
 
-interface GrievancePayload {
+interface StorePayload {
   nextId: number;
   tickets: GrievanceTicket[];
-}
-
-export function migrateLegacyGrievanceData(): void {
-  if (typeof window === "undefined") return;
-
-  const done = localStorage.getItem(MIGRATION_FLAG_KEY);
-  if (done === "true") return;
-
-  const removedKeys: string[] = [];
-  const keysToScan = Object.keys(localStorage);
-  
-  keysToScan.forEach((key) => {
-    // Scan for all legacy/duplicate grievance keys
-    if (
-      (key.includes("grievance") || 
-       key.includes("complaint") || 
-       key.includes("ticket") || 
-       key.includes("mock")) && 
-      key !== GRIEVANCE_STORE_KEY
-    ) {
-      localStorage.removeItem(key);
-      removedKeys.push(key);
-    }
-  });
-
-  // Legacy tickets used an incompatible schema. Rather than risk corruption, we reseed clean data.
-  console.log("[migration v4] cleared:", removedKeys);
-
-  localStorage.setItem(MIGRATION_FLAG_KEY, "true");
-  seedGrievancesIfEmpty();
 }
 
 export function seedGrievancesIfEmpty(): void {
   if (typeof window === "undefined") return;
 
-  const done = localStorage.getItem(MIGRATION_FLAG_KEY);
-  if (done !== "true") {
-    migrateLegacyGrievanceData();
-  }
-
   const existing = localStorage.getItem(GRIEVANCE_STORE_KEY);
   if (!existing) {
-    const now = new Date();
-    const getDateAgo = (days: number) => {
-      const d = new Date();
-      d.setDate(now.getDate() - days);
-      return d.toISOString();
-    };
-
-    const seedTickets: GrievanceTicket[] = [
-      {
-        id: "TKT-2026-0001",
-        title: "Water main rupture on 100ft Road, Indiranagar",
-        category: "Water Supply",
-        priority: "Critical",
-        status: "Pending",
-        location: "100ft Road, Indiranagar, Bengaluru",
-        citizenName: "Rohan Kulkarni",
-        citizenEmail: "rohan.kulkarni@example.com",
-        citizenPhone: "+919876543210",
-        description: "A major water pipe burst here. Huge geyser and flooded road blocking traffic.",
-        upvotes: 3,
-        department: "Central Municipal Administration",
-        assignedOfficer: null,
-        createdAt: getDateAgo(8),
-        updatedAt: getDateAgo(8),
-        adminNotes: [
-          {
-            status: "Pending",
-            changedAt: getDateAgo(8),
-            note: "Ticket created automatically",
-            changedByOfficerId: "system",
-          },
-        ],
-      },
-      {
-        id: "TKT-2026-0002",
-        title: "Hazardous open pothole near Metro Pillar 42",
-        category: "Roads & Potholes",
-        priority: "High",
-        status: "Under Review",
-        location: "MG Road, near Metro Pillar 42",
-        citizenName: "Ananya Reddy",
-        citizenEmail: "ananya.reddy@example.com",
-        citizenPhone: "+919876543211",
-        description: "Deep pothole in the middle lane, extremely dangerous for motorbikes.",
-        upvotes: 8,
-        department: "Central Municipal Administration",
-        assignedOfficer: null,
-        createdAt: getDateAgo(6),
-        updatedAt: getDateAgo(5),
-        adminNotes: [
-          {
-            status: "Pending",
-            changedAt: getDateAgo(6),
-            note: "Ticket created",
-            changedByOfficerId: "system",
-          },
-          {
-            status: "Under Review",
-            changedAt: getDateAgo(5),
-            note: "Checking physical proximity to metro construction coordinates",
-            changedByOfficerId: "OFF-1002",
-          },
-        ],
-      },
-      {
-        id: "TKT-2026-0003",
-        title: "Streetlight outage on 3rd Cross, Jayanagar",
-        category: "Street Lights",
-        priority: "Medium",
-        status: "In Progress",
-        location: "3rd Cross, Jayanagar",
-        citizenName: "Vikram Singh",
-        citizenEmail: "vikram.singh@example.com",
-        citizenPhone: "+919876543212",
-        description: "Entire street is pitch black for the past 3 nights. Safety concern.",
-        upvotes: 12,
-        department: "Central Municipal Administration",
-        assignedOfficer: "Priya Sharma (OFF-1001)",
-        createdAt: getDateAgo(4),
-        updatedAt: getDateAgo(3),
-        adminNotes: [
-          {
-            status: "Pending",
-            changedAt: getDateAgo(4),
-            note: "Ticket filed",
-            changedByOfficerId: "system",
-          },
-          {
-            status: "Under Review",
-            changedAt: getDateAgo(3),
-            note: "Verified streetlight outage",
-            changedByOfficerId: "OFF-1001",
-          },
-          {
-            status: "In Progress",
-            changedAt: getDateAgo(3),
-            note: "Dispatched ground engineer with replacement bulbs",
-            changedByOfficerId: "OFF-1001",
-          },
-        ],
-      },
-      {
-        id: "TKT-2026-0004",
-        title: "Overflowing garbage bin, Koramangala 5th Block",
-        category: "Cleanliness",
-        priority: "Low",
-        status: "Resolved",
-        location: "Koramangala 5th Block",
-        citizenName: "Sneha Iyer",
-        citizenEmail: "sneha.iyer@example.com",
-        citizenPhone: "+919876543213",
-        description: "The garbage bin at the crossroad is completely full and smelling terribly.",
-        upvotes: 2,
-        department: "Central Municipal Administration",
-        assignedOfficer: null,
-        createdAt: getDateAgo(2),
-        updatedAt: getDateAgo(1),
-        adminNotes: [
-          {
-            status: "Pending",
-            changedAt: getDateAgo(2),
-            note: "Ticket submitted",
-            changedByOfficerId: "system",
-          },
-          {
-            status: "Resolved",
-            changedAt: getDateAgo(1),
-            note: "Cleared bin and sanitized neighborhood area",
-            changedByOfficerId: "OFF-1002",
-          },
-        ],
-      },
-      {
-        id: "TKT-2026-0005",
-        title: "Broken swing set at Cubbon Park children's area",
-        category: "Parks & Recreation",
-        priority: "Low",
-        status: "Rejected",
-        location: "Cubbon Park",
-        citizenName: "Karan Mehta",
-        citizenEmail: "karan.mehta@example.com",
-        citizenPhone: "+919876543214",
-        description: "One of the swings has its chains broken. Needs replacement.",
-        upvotes: 1,
-        department: "Central Municipal Administration",
-        assignedOfficer: null,
-        createdAt: getDateAgo(1),
-        updatedAt: now.toISOString(),
-        adminNotes: [
-          {
-            status: "Pending",
-            changedAt: getDateAgo(1),
-            note: "Ticket created",
-            changedByOfficerId: "system",
-          },
-          {
-            status: "Rejected",
-            changedAt: now.toISOString(),
-            note: "Cubbon Park maintenance falls under direct State Authority jurisdiction, not Civic municipal control.",
-            changedByOfficerId: "OFF-1001",
-          },
-        ],
-      },
-    ];
-
-    const payload: GrievancePayload = {
-      nextId: 6,
+    const seedTickets = getInitialSeedTickets();
+    const payload: StorePayload = {
+      nextId: seedTickets.length + 1,
       tickets: seedTickets,
     };
     localStorage.setItem(GRIEVANCE_STORE_KEY, JSON.stringify(payload));
@@ -227,78 +35,132 @@ export function getGrievances(): GrievanceTicket[] {
   if (typeof window === "undefined") return [];
   seedGrievancesIfEmpty();
   try {
-    const payload: GrievancePayload = JSON.parse(localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}");
+    const raw = localStorage.getItem(GRIEVANCE_STORE_KEY);
+    if (!raw) return [];
+    const payload: StorePayload = JSON.parse(raw);
     return payload.tickets || [];
   } catch {
     return [];
   }
 }
 
-export function getGrievancesByCitizenEmail(email: string): GrievanceTicket[] {
-  const normEmail = email.trim().toLowerCase();
-  return getGrievances().filter(
-    (t) => t.citizenEmail.trim().toLowerCase() === normEmail
-  );
+/**
+ * Dynamically evaluates SLA and computed status.
+ * If Date.now() > ticket.slaDeadlineAt and status is not RESOLVED or CLOSED,
+ * its computed status is 'OVERDUE'.
+ */
+export function getComputedTickets(): GrievanceTicket[] {
+  const tickets = getGrievances();
+  const nowMs = Date.now();
+
+  return tickets.map((t) => {
+    const deadlineMs = new Date(t.slaDeadlineAt).getTime();
+    if (
+      nowMs > deadlineMs &&
+      t.status !== "RESOLVED" &&
+      t.status !== "CLOSED" &&
+      t.status !== "OVERDUE"
+    ) {
+      return { ...t, status: "OVERDUE" as ComplaintStatus };
+    }
+    return t;
+  });
 }
 
 export function getGrievanceById(id: string): GrievanceTicket | null {
-  const tickets = getGrievances();
+  const tickets = getComputedTickets();
   return tickets.find((t) => t.id === id) || null;
 }
 
-export function addGrievance(input: NewGrievanceInput): GrievanceTicket {
-  seedGrievancesIfEmpty();
-  
-  if (!CATEGORY_OPTIONS.includes(input.category)) {
-    throw new Error(`Invalid category submitted: ${input.category}`);
-  }
+export function getGrievancesByDept(deptCode: MunicipalDeptCode): GrievanceTicket[] {
+  const tickets = getComputedTickets();
+  return tickets.filter((t) => t.departmentCode === deptCode);
+}
 
-  const payloadStr = localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}";
-  let payload: GrievancePayload = { nextId: 1, tickets: [] };
-  
+export function getGrievancesByCitizen(citizenIdOrEmail: string): GrievanceTicket[] {
+  const tickets = getComputedTickets();
+  const norm = citizenIdOrEmail.trim().toLowerCase();
+  return tickets.filter(
+    (t) =>
+      t.citizenId.toLowerCase() === norm ||
+      t.citizenName.toLowerCase() === norm
+  );
+}
+
+/**
+ * Adds a new ticket.
+ * Computes slaDeadlineAt = now + defaultSlaHours.
+ * Formats ID as TKT-2026-NNNN.
+ * Sets status = 'NEW', supporterIds = [citizenId], upvoteCount = 1.
+ */
+export function addTicket(data: {
+  citizenId: string;
+  citizenName: string;
+  citizenPhone: string;
+  title: string;
+  description: string;
+  mediaUrls?: string[];
+  latitude: number;
+  longitude: number;
+  addressText: string;
+  landmark?: string;
+  wardId: string;
+  wardNumber: number;
+  departmentCode: MunicipalDeptCode;
+  priority?: PriorityLevel;
+}): GrievanceTicket {
+  seedGrievancesIfEmpty();
+  const raw = localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}";
+  let payload: StorePayload = { nextId: 1, tickets: [] };
+
   try {
-    payload = JSON.parse(payloadStr);
+    payload = JSON.parse(raw);
   } catch {
     // fallback
   }
 
-  const now = new Date().toISOString();
-  const currentYear = new Date().getFullYear();
-  const sequentialIdStr = payload.nextId.toString().padStart(4, "0");
-  const ticketId = `TKT-${currentYear}-${sequentialIdStr}`;
-  
+  const now = new Date();
+  const seqStr = payload.nextId.toString().padStart(4, "0");
+  const ticketId = `TKT-2026-${seqStr}`;
+
+  const deptMeta = MUNICIPAL_DEPARTMENTS[data.departmentCode];
+  const slaHours = deptMeta ? deptMeta.defaultSlaHours : 48;
+  const slaDeadlineAt = new Date(now.getTime() + slaHours * 3600 * 1000).toISOString();
+
   const newTicket: GrievanceTicket = {
-    ...input,
     id: ticketId,
-    status: "Pending",
-    upvotes: 1,
-    department: "Central Municipal Administration",
-    assignedOfficer: null,
-    createdAt: now,
-    updatedAt: now,
-    adminNotes: [
-      {
-        status: "Pending",
-        changedAt: now,
-        changedByOfficerId: "system",
-        note: "Ticket created",
-      },
-    ],
+    citizenId: data.citizenId || "cit-guest",
+    citizenName: data.citizenName || "Citizen User",
+    citizenPhone: data.citizenPhone || "+919876543210",
+    title: data.title,
+    description: data.description,
+    mediaUrls: data.mediaUrls || [],
+    latitude: data.latitude,
+    longitude: data.longitude,
+    addressText: data.addressText,
+    landmark: data.landmark,
+    wardId: data.wardId,
+    wardNumber: data.wardNumber,
+    departmentCode: data.departmentCode,
+    status: "NEW",
+    priority: data.priority || "MEDIUM",
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+    slaDeadlineAt,
+    reopenedCount: 0,
+    supporterIds: [data.citizenId || "cit-guest"],
+    upvoteCount: 1,
   };
 
   payload.tickets.unshift(newTicket);
   payload.nextId += 1;
-
   localStorage.setItem(GRIEVANCE_STORE_KEY, JSON.stringify(payload));
-  
-  console.log("[grievanceStore] added", newTicket.id, "citizen:", newTicket.citizenEmail);
 
-  // Trigger master notification
   try {
     addNotification({
       type: "complaint_status",
-      title: "Complaint Registered",
-      message: `Your complaint ${ticketId} (${newTicket.title}) was successfully registered.`,
+      title: "Complaint Logged",
+      message: `Your report ${ticketId} was successfully assigned to ${deptMeta?.name || "Municipal Dept"}.`,
       relatedId: ticketId,
       iconType: "info",
     });
@@ -313,79 +175,33 @@ export function addGrievance(input: NewGrievanceInput): GrievanceTicket {
   return newTicket;
 }
 
-export function updateGrievanceStatus(
-  id: string,
-  status: IssueStatus,
-  note: string | undefined,
-  changedByOfficerId: string
+/**
+ * Transitions status from 'NEW' to 'ASSIGNED'.
+ */
+export function assignOfficer(
+  ticketId: string,
+  officerName: string,
+  role?: string
 ): GrievanceTicket | null {
   seedGrievancesIfEmpty();
-  
-  const payloadStr = localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}";
-  let payload: GrievancePayload = { nextId: 1, tickets: [] };
-  
+  const raw = localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}";
+  let payload: StorePayload = { nextId: 1, tickets: [] };
+
   try {
-    payload = JSON.parse(payloadStr);
+    payload = JSON.parse(raw);
   } catch {
     return null;
   }
 
-  const idx = payload.tickets.findIndex((t) => t.id === id);
+  const idx = payload.tickets.findIndex((t) => t.id === ticketId);
   if (idx === -1) return null;
 
   const ticket = payload.tickets[idx];
-  const now = new Date().toISOString();
-
-  ticket.adminNotes.push({
-    status,
-    changedAt: now,
-    note,
-    changedByOfficerId,
-  });
-
-  ticket.status = status;
-  ticket.updatedAt = now;
-
-  payload.tickets[idx] = ticket;
-  localStorage.setItem(GRIEVANCE_STORE_KEY, JSON.stringify(payload));
-
-  // Trigger status update notification
-  try {
-    addNotification({
-      type: "complaint_status",
-      title: "Status Updated",
-      message: `Your complaint ${ticket.id} status changed to ${status.toUpperCase()}.`,
-      relatedId: ticket.id,
-      iconType: "info",
-    });
-  } catch {
-    // safe fallback
+  ticket.assignedOfficerName = officerName;
+  if (role) ticket.assignedOfficerRole = role;
+  if (ticket.status === "NEW" || ticket.status === "OVERDUE") {
+    ticket.status = "ASSIGNED";
   }
-
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent(GRIEVANCE_SYNC_EVENT));
-  }
-
-  return ticket;
-}
-
-export function upvoteGrievance(id: string): GrievanceTicket | null {
-  seedGrievancesIfEmpty();
-  
-  const payloadStr = localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}";
-  let payload: GrievancePayload = { nextId: 1, tickets: [] };
-  
-  try {
-    payload = JSON.parse(payloadStr);
-  } catch {
-    return null;
-  }
-
-  const idx = payload.tickets.findIndex((t) => t.id === id);
-  if (idx === -1) return null;
-
-  const ticket = payload.tickets[idx];
-  ticket.upvotes = (ticket.upvotes || 0) + 1;
   ticket.updatedAt = new Date().toISOString();
 
   payload.tickets[idx] = ticket;
@@ -398,32 +214,221 @@ export function upvoteGrievance(id: string): GrievanceTicket | null {
   return ticket;
 }
 
-export function computeStats(tickets: GrievanceTicket[]): {
-  total: number;
-  critical: number;
-  inProgress: number;
-  resolved: number;
-} {
-  let criticalCount = 0;
-  let inProgressCount = 0;
-  let resolvedCount = 0;
+/**
+ * Transitions between 'ASSIGNED' and 'IN_PROGRESS'.
+ */
+export function updateStatus(
+  ticketId: string,
+  status: ComplaintStatus
+): GrievanceTicket | null {
+  seedGrievancesIfEmpty();
+  const raw = localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}";
+  let payload: StorePayload = { nextId: 1, tickets: [] };
 
-  tickets.forEach((t) => {
-    if (t.priority === "Critical" && t.status !== "Resolved" && t.status !== "Rejected") {
-      criticalCount += 1;
-    }
-    if (t.status === "In Progress") {
-      inProgressCount += 1;
-    }
-    if (t.status === "Resolved") {
-      resolvedCount += 1;
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+
+  const idx = payload.tickets.findIndex((t) => t.id === ticketId);
+  if (idx === -1) return null;
+
+  const ticket = payload.tickets[idx];
+  ticket.status = status;
+  ticket.updatedAt = new Date().toISOString();
+
+  payload.tickets[idx] = ticket;
+  localStorage.setItem(GRIEVANCE_STORE_KEY, JSON.stringify(payload));
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(GRIEVANCE_SYNC_EVENT));
+  }
+
+  return ticket;
+}
+
+/**
+ * Sets status = 'RESOLVED', citizenVerification = 'pending', records resolutionProof.
+ */
+export function addResolutionProof(
+  ticketId: string,
+  proof: { photoUrl: string; remarks: string; officerName: string }
+): GrievanceTicket | null {
+  seedGrievancesIfEmpty();
+  const raw = localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}";
+  let payload: StorePayload = { nextId: 1, tickets: [] };
+
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+
+  const idx = payload.tickets.findIndex((t) => t.id === ticketId);
+  if (idx === -1) return null;
+
+  const ticket = payload.tickets[idx];
+  const resolvedAt = new Date().toISOString();
+
+  ticket.resolutionProof = {
+    photoUrl: proof.photoUrl,
+    remarks: proof.remarks,
+    resolvedAt,
+    officerName: proof.officerName,
+  };
+  ticket.status = "RESOLVED";
+  ticket.citizenVerification = "pending";
+  ticket.updatedAt = resolvedAt;
+
+  payload.tickets[idx] = ticket;
+  localStorage.setItem(GRIEVANCE_STORE_KEY, JSON.stringify(payload));
+
+  try {
+    addNotification({
+      type: "complaint_status",
+      title: "Issue Resolved — Please Confirm",
+      message: `${ticket.id} was marked resolved by ${proof.officerName}. Please verify.`,
+      relatedId: ticket.id,
+      iconType: "info",
+    });
+  } catch {
+    // fallback
+  }
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(GRIEVANCE_SYNC_EVENT));
+  }
+
+  return ticket;
+}
+
+/**
+ * Handles citizen verification:
+ * - 'confirm': status = 'CLOSED', citizenVerification = 'confirmed'.
+ * - 'reopen': status = 'REOPENED', citizenVerification = 'reopened', priority = 'HIGH', increments reopenedCount, appends reopenReason.
+ */
+export function verifyResolution(
+  ticketId: string,
+  action: "confirm" | "reopen",
+  reason?: string
+): GrievanceTicket | null {
+  seedGrievancesIfEmpty();
+  const raw = localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}";
+  let payload: StorePayload = { nextId: 1, tickets: [] };
+
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+
+  const idx = payload.tickets.findIndex((t) => t.id === ticketId);
+  if (idx === -1) return null;
+
+  const ticket = payload.tickets[idx];
+  const nowStr = new Date().toISOString();
+
+  if (action === "confirm") {
+    ticket.status = "CLOSED";
+    ticket.citizenVerification = "confirmed";
+  } else {
+    ticket.status = "REOPENED";
+    ticket.citizenVerification = "reopened";
+    ticket.priority = "HIGH";
+    ticket.reopenedCount = (ticket.reopenedCount || 0) + 1;
+    ticket.reopenReason = reason || "Citizen indicated issue is still present.";
+  }
+  ticket.updatedAt = nowStr;
+
+  payload.tickets[idx] = ticket;
+  localStorage.setItem(GRIEVANCE_STORE_KEY, JSON.stringify(payload));
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(GRIEVANCE_SYNC_EVENT));
+  }
+
+  return ticket;
+}
+
+/**
+ * Adds citizen support/upvote to an existing ticket.
+ */
+export function supportExistingTicket(
+  ticketId: string,
+  citizenId: string
+): GrievanceTicket | null {
+  seedGrievancesIfEmpty();
+  const raw = localStorage.getItem(GRIEVANCE_STORE_KEY) || "{}";
+  let payload: StorePayload = { nextId: 1, tickets: [] };
+
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+
+  const idx = payload.tickets.findIndex((t) => t.id === ticketId);
+  if (idx === -1) return null;
+
+  const ticket = payload.tickets[idx];
+  if (!ticket.supporterIds.includes(citizenId)) {
+    ticket.supporterIds.push(citizenId);
+    ticket.upvoteCount = (ticket.upvoteCount || 0) + 1;
+    ticket.updatedAt = new Date().toISOString();
+  }
+
+  payload.tickets[idx] = ticket;
+  localStorage.setItem(GRIEVANCE_STORE_KEY, JSON.stringify(payload));
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(GRIEVANCE_SYNC_EVENT));
+  }
+
+  return ticket;
+}
+
+/**
+ * Scans active tickets (status NOT IN ('RESOLVED', 'CLOSED')).
+ * Groups by departmentCode.
+ * If >= 3 distinct wardIds contain open tickets in same dept AND total unresolved count >= 4,
+ * returns a synthesized DistrictClusterAlert.
+ */
+export function detectCrossWardClusters(): DistrictClusterAlert[] {
+  const tickets = getComputedTickets();
+  const active = tickets.filter(
+    (t) => t.status !== "RESOLVED" && t.status !== "CLOSED"
+  );
+
+  const deptMap = new Map<MunicipalDeptCode, GrievanceTicket[]>();
+  for (const ticket of active) {
+    const code = ticket.departmentCode;
+    if (!deptMap.has(code)) deptMap.set(code, []);
+    deptMap.get(code)!.push(ticket);
+  }
+
+  const alerts: DistrictClusterAlert[] = [];
+
+  deptMap.forEach((deptTickets, deptCode) => {
+    const wardSet = new Set(deptTickets.map((t) => t.wardId));
+    const totalSupporters = deptTickets.reduce((acc, t) => acc + (t.upvoteCount || 1), 0);
+
+    if (wardSet.size >= 3 && deptTickets.length >= 4) {
+      const deptMeta = MUNICIPAL_DEPARTMENTS[deptCode];
+      alerts.push({
+        id: `cluster-${deptCode}-${Date.now()}`,
+        departmentCode: deptCode,
+        departmentName: deptMeta ? deptMeta.name : deptCode,
+        categoryLabel: deptMeta ? deptMeta.name : deptCode,
+        affectedWards: Array.from(wardSet),
+        unresolvedCount: deptTickets.length,
+        citizensAffected: totalSupporters * 3 + 45, // estimated impacted citizens
+        summary: `${deptTickets.length} unresolved complaints across ${wardSet.size} wards in ${deptMeta?.name || deptCode}`,
+        createdAt: new Date().toISOString(),
+        status: "ACTIVE",
+      });
     }
   });
 
-  return {
-    total: tickets.length,
-    critical: criticalCount,
-    inProgress: inProgressCount,
-    resolved: resolvedCount,
-  };
+  return alerts;
 }

@@ -12,6 +12,11 @@ import ComplaintsOverviewChart from "@/components/dashboard/ComplaintsOverviewCh
 import TopCategoriesGauge from "@/components/dashboard/TopCategoriesGauge";
 import ComplaintHeatmapCard from "@/components/dashboard/ComplaintHeatmapCard";
 import { LiveDot, LiveTelemetryValue } from "@/components/dashboard/hud/HudPrimitives";
+import GovtTenderBanner from "@/components/dashboard/GovtTenderBanner";
+import UtilityOutageWidget from "@/components/broadcast/UtilityOutageWidget";
+import CommunityVerificationCard from "@/components/dashboard/CommunityVerificationCard";
+import { useCivicCredits } from "@/lib/civicCreditStore";
+import EmergencyBroadcastBanner from "@/components/dashboard/EmergencyBroadcastBanner";
 
 function getCitySeed(cityName: string): number {
   let hash = 0;
@@ -26,6 +31,7 @@ export default function DashboardHome() {
   const { user } = useAuth();
   const { location } = useLocation();
   const dateInfo = useDynamicDate();
+  const { missions } = useCivicCredits();
 
   const userName = user?.name?.split(" ")[0] ?? "there";
   const citySeed = useMemo(() => getCitySeed(location.city), [location.city]);
@@ -57,6 +63,9 @@ export default function DashboardHome() {
 
   return (
     <div className="space-y-6">
+      {/* Emergency Notification Banner */}
+      <EmergencyBroadcastBanner />
+
       {/* Welcome Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-transparent text-white flex flex-col justify-between p-6 md:p-8 min-h-[220px] md:min-h-[260px] w-full shadow-md">
         {/* Background Skyline photo */}
@@ -71,7 +80,7 @@ export default function DashboardHome() {
 
         <div className="relative z-10 space-y-3">
           <div className="flex items-center gap-2">
-            <StatusPill label={`Live Civic Portal — ${location.city}`} />
+            <StatusPill label="Live Civic Portal — Bhubaneswar (BMC)" />
             <LiveDot color="emerald" size="sm" />
           </div>
           <div className="space-y-1">
@@ -79,7 +88,7 @@ export default function DashboardHome() {
               Welcome back, {userName}! <span className="animate-wave">👋</span>
             </h1>
             <p className="text-white/80 text-xs md:text-sm max-w-md font-medium leading-relaxed">
-              Here&apos;s what&apos;s happening in <span className="font-bold text-emerald-300">{location.label}</span> for <span className="font-bold text-white">{dateInfo.formattedDate}</span>.
+              Here&apos;s what&apos;s happening in <span className="font-bold text-emerald-300">Bhubaneswar, Odisha</span> for <span className="font-bold text-white">{dateInfo.formattedDate}</span>.
             </p>
           </div>
         </div>
@@ -108,6 +117,15 @@ export default function DashboardHome() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Quick-Access E-Procurement Banner */}
+      <GovtTenderBanner />
+
+      {/* Grid containing Utility Outages & Geo-Fenced Community Audit Missions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <UtilityOutageWidget />
+        {missions.length > 0 && <CommunityVerificationCard mission={missions[0]} />}
       </div>
 
       {/* 3-Column 3D Cyber-Civic HUD Spatial Widget Grid */}

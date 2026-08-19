@@ -11,9 +11,9 @@ import {
   IssueStatus
 } from "@/lib/grievance";
 import {
-  getGrievancesByCitizenEmail,
-  upvoteGrievance,
-  migrateLegacyGrievanceData,
+  getComputedTickets,
+  supportExistingTicket,
+  verifyResolution,
   GRIEVANCE_SYNC_EVENT,
   GRIEVANCE_STORE_KEY
 } from "@/lib/grievanceStore";
@@ -35,14 +35,13 @@ function ComplaintsContent() {
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [loading, setLoading] = useState(true);
 
-  // Sync effect (§8 pattern)
+  // Sync effect
   useEffect(() => {
-    migrateLegacyGrievanceData();
-    setTickets(getGrievancesByCitizenEmail(currentCitizenEmail));
+    setTickets(getComputedTickets());
     setLoading(false);
 
     const refresh = () => {
-      setTickets(getGrievancesByCitizenEmail(currentCitizenEmail));
+      setTickets(getComputedTickets());
     };
 
     window.addEventListener(GRIEVANCE_SYNC_EVENT, refresh);
@@ -56,13 +55,11 @@ function ComplaintsContent() {
       window.removeEventListener(GRIEVANCE_SYNC_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
-  }, [currentCitizenEmail]);
-
-  // Log debug count
-  console.log("[dashboard/complaints] count:", tickets.length);
+  }, []);
 
   const handleUpvote = (id: string) => {
-    upvoteGrievance(id);
+    supportExistingTicket(id, user?.id || "cit-guest");
+    setTickets(getComputedTickets());
   };
 
   // Filter & Search logic
@@ -70,7 +67,7 @@ function ComplaintsContent() {
     const matchesSearch =
       t.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.location.toLowerCase().includes(searchTerm.toLowerCase());
+      (t.addressText && t.addressText.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesStatus = statusFilter === "All" ? true : t.status === statusFilter;
 
@@ -86,7 +83,7 @@ function ComplaintsContent() {
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     }
     if (sortBy === "upvotes") {
-      return (b.upvotes || 0) - (a.upvotes || 0);
+      return (b.upvoteCount || 0) - (a.upvoteCount || 0);
     }
     return 0;
   });
@@ -196,6 +193,10 @@ function ComplaintsContent() {
               key={ticket.id}
               ticket={ticket}
               onUpvote={() => handleUpvote(ticket.id)}
+              onVerifyResolution={(action, reason) => {
+                verifyResolution(ticket.id, action, reason);
+                setTickets(getComputedTickets());
+              }}
             />
           ))}
         </div>

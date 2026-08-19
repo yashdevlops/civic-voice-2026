@@ -1,8 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ── CSS Custom Properties ─────────────────────────────────────────────────── */
 :root {
@@ -17,13 +15,44 @@
   --color-text-secondary: #64748B;
   --color-border:         #E2E8F0;
 
-  /* Status tokens */
-  --status-inprogress-bg:   #DBEAFE;
-  --status-inprogress-text: #1E40AF;
-  --status-pending-bg:      #FEF3C7;
-  --status-pending-text:    #92400E;
-  --status-resolved-bg:     #DCFCE7;
-  --status-resolved-text:   #166534;
+  /* Status tokens — 7-stage pipeline */
+  --status-new-bg:              #E0F2FE;
+  --status-new-text:            #075985;
+  --status-new-border:          #BAE6FD;
+
+  --status-assigned-bg:         #E0E7FF;
+  --status-assigned-text:       #3730A3;
+  --status-assigned-border:     #C7D2FE;
+
+  --status-inprogress-bg:       #FEF3C7;
+  --status-inprogress-text:     #92400E;
+  --status-inprogress-border:   #FDE68A;
+
+  --status-overdue-bg:          #FEE2E2;
+  --status-overdue-text:        #991B1B;
+  --status-overdue-border:      #FCA5A5;
+
+  --status-resolved-bg:         #D1FAE5;
+  --status-resolved-text:       #065F46;
+  --status-resolved-border:     #6EE7B7;
+
+  --status-closed-bg:           #F1F5F9;
+  --status-closed-text:         #334155;
+  --status-closed-border:       #CBD5E1;
+
+  --status-reopened-bg:         #FFE4E6;
+  --status-reopened-text:       #9F1239;
+  --status-reopened-border:     #FECDD3;
+
+  /* Priority color tokens */
+  --priority-critical-bg:       #FEF2F2;
+  --priority-critical-text:     #B91C1C;
+  --priority-high-bg:           #FFF7ED;
+  --priority-high-text:         #C2410C;
+  --priority-medium-bg:         #FFFBEB;
+  --priority-medium-text:       #B45309;
+  --priority-low-bg:            #F8FAFC;
+  --priority-low-text:          #475569;
 
   /* Layout */
   --sidebar-width: 240px;
@@ -182,10 +211,7 @@ h1, h2, h3 {
 
 /* ── Form inputs shared style ───────────────────────────────────────────────── */
 .civic-input {
-  @apply w-full bg-white px-3 py-2.5 text-sm text-slate-900;
-  @apply border border-slate-200 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
-  @apply transition-all duration-150 placeholder-slate-400;
-  border-radius: var(--radius-control);
+  @apply w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none shadow-sm placeholder-slate-400;
 }
 
 .civic-textarea {
