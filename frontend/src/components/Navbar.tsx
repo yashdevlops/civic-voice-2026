@@ -28,8 +28,10 @@ export default function Navbar() {
     setCommUser(getCommissionerSession());
   }, [pathname]);
 
-  // Don't render global Navbar inside main dashboard layout if covered by DashboardShell
-  if (pathname.startsWith("/dashboard")) {
+  // Only render the global Navbar on the root landing page.
+  // All internal routes (/dashboard, /citizen, /municipal, /commissioner,
+  // /login, /signup, /contracts, /budget, etc.) have their own navigation.
+  if (pathname !== "/") {
     return null;
   }
 

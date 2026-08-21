@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n";
-import Navbar from "@/components/Navbar";
 import { AuthProvider } from "@/lib/auth";
 import { ToastProvider } from "@/lib/toast";
 import { LocationProvider } from "@/context/LocationContext";
@@ -31,12 +30,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-slate-900 text-slate-100 antialiased">
+      <body className="min-h-screen bg-white antialiased">
         <I18nProvider>
           <AuthProvider>
             <LocationProvider>
               <ToastProvider>
-                <Navbar />
                 <main>{children}</main>
               </ToastProvider>
             </LocationProvider>
