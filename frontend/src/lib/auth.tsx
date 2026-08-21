@@ -171,7 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   phone: citizen.phone || undefined,
                   role: "citizen",
                   token: session.token,
-                  location: "Bengaluru, Karnataka",
+                  location: "Bhubaneswar, Odisha",
                 });
               }
             } else {
@@ -186,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   token: session.token,
                   department: officer.department || undefined,
                   officerId: officer.officerId,
-                  location: "Municipal HQ, Bengaluru",
+                  location: "Municipal HQ, Bhubaneswar",
                 });
               }
             }
@@ -279,7 +279,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       phone: citizen.phone || undefined,
       role: "citizen",
       token: session.token,
-      location: "Bengaluru, Karnataka",
+      location: "Bhubaneswar, Odisha",
     };
 
     setUser(authUser);
@@ -326,7 +326,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       phone: newCitizen.phone || undefined,
       role: "citizen",
       token: session.token,
-      location: "Bengaluru, Karnataka",
+      location: "Bhubaneswar, Odisha",
     };
 
     setUser(authUser);
@@ -370,7 +370,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       phone: citizen.phone || undefined,
       role: "citizen",
       token: session.token,
-      location: "Bengaluru, Karnataka",
+      location: "Bhubaneswar, Odisha",
     };
 
     setUser(authUser);
@@ -414,7 +414,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       phone: citizen.phone || undefined,
       role: "citizen",
       token: session.token,
-      location: "Bengaluru, Karnataka",
+      location: "Bhubaneswar, Odisha",
     };
 
     setUser(authUser);
@@ -533,7 +533,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token: session.token,
       department: officer.department || undefined,
       officerId: officer.officerId,
-      location: "Municipal HQ, Bengaluru",
+      location: "Municipal HQ, Bhubaneswar",
     };
 
     setUser(authUser);

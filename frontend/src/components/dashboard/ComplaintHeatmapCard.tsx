@@ -4,6 +4,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { MapPin, Maximize2, X, AlertTriangle, ExternalLink } from "lucide-react";
 import { useLocation } from "@/context/LocationContext";
 import { HudCardFrame, LiveDot } from "./hud/HudPrimitives";
+import { getGrievances } from "@/lib/grievanceStore";
 
 export interface HeatmapSpot {
   id: string;
@@ -35,6 +36,27 @@ export default function ComplaintHeatmapCard({ spots: customSpots, className = "
   const [hoveredSpot, setHoveredSpot] = useState<HeatmapSpot | null>(null);
   const [mounted, setMounted] = useState(false);
 
+  // Compute hottest ward from live grievance data
+  const hottestWard = useMemo(() => {
+    try {
+      const tickets = getGrievances();
+      const openTickets = tickets.filter(
+        (t) => t.status !== "RESOLVED" && t.status !== "CLOSED"
+      );
+      if (openTickets.length === 0) return null;
+      const wardCounts: Record<string, number> = {};
+      for (const t of openTickets) {
+        if (t.wardId) {
+          wardCounts[t.wardId] = (wardCounts[t.wardId] || 0) + 1;
+        }
+      }
+      const topWardId = Object.entries(wardCounts).sort((a, b) => b[1] - a[1])[0];
+      return topWardId ? { ward: topWardId[0], count: topWardId[1] } : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -59,36 +81,39 @@ export default function ComplaintHeatmapCard({ spots: customSpots, className = "
     const baseTop = 28 + (citySeed % 30);
     const baseLeft = 30 + (citySeed % 26);
 
-    const latBase = (18.52 + (citySeed % 10) * 0.4).toFixed(4);
-    const lngBase = (73.85 + (citySeed % 12) * 0.3).toFixed(4);
+    // Use real Bhubaneswar BMC ward coordinates as base
+    const bbsrLat = 20.2961;
+    const bbsrLng = 85.8245;
+    const latBase = (bbsrLat + (citySeed % 10) * 0.008).toFixed(4);
+    const lngBase = (bbsrLng + (citySeed % 12) * 0.007).toFixed(4);
 
     return [
       {
         id: "spot-1",
-        name: `${location.city} Central Ward 04`,
+        name: "BMC Ward 12 — Laxmi Sagar",
         tickets: 142 + (citySeed % 35),
         topPct: `${baseTop}%`,
         leftPct: `${baseLeft}%`,
         type: "critical",
-        coordinates: `${latBase}° N, ${lngBase}° E`,
+        coordinates: `20.2610° N, 85.8460° E`,
       },
       {
         id: "spot-2",
-        name: `${location.city} East Division 12`,
+        name: "BMC Ward 25 — Satya Nagar",
         tickets: 88 + (citySeed % 25),
         topPct: `${(baseTop + 36) % 72}%`,
         leftPct: `${(baseLeft + 42) % 78}%`,
         type: "warning",
-        coordinates: `${(parseFloat(latBase) + 0.042).toFixed(4)}° N, ${(parseFloat(lngBase) + 0.055).toFixed(4)}° E`,
+        coordinates: `20.3009° N, 85.8546° E`,
       },
       {
         id: "spot-3",
-        name: `${location.city} South Extension 08`,
+        name: "BMC Ward 6 — Patia",
         tickets: 45 + (citySeed % 15),
         topPct: `${(baseTop + 54) % 68}%`,
         leftPct: `${(baseLeft + 18) % 68}%`,
         type: "stable",
-        coordinates: `${(parseFloat(latBase) - 0.031).toFixed(4)}° N, ${(parseFloat(lngBase) - 0.024).toFixed(4)}° E`,
+        coordinates: `20.3476° N, 85.8138° E`,
       },
     ];
   }, [customSpots, location.city, citySeed]);
@@ -205,7 +230,9 @@ export default function ComplaintHeatmapCard({ spots: customSpots, className = "
         <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500 font-medium z-10">
           <span className="flex items-center gap-1.5 text-amber-700 font-semibold">
             <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-            <span>High Density: Ward 04 ({heatmapSpots[0]?.tickets || 140}+ tickets)</span>
+            <span>
+              High Density: {hottestWard ? `${hottestWard.ward} (${hottestWard.count}+ open tickets)` : `${heatmapSpots[0]?.name?.replace("BMC ", "") || "Ward 12"} (${heatmapSpots[0]?.tickets || 142}+ tickets)`}
+            </span>
           </span>
           <div className="flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
             <LiveDot color="emerald" size="sm" />

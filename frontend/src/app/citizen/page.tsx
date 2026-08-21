@@ -606,17 +606,54 @@ function CitizenContent() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1.5">Photo URL / Media Upload (Optional)</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="https://..."
-                          className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-sm outline-none shadow-sm pr-10"
-                          value={imageUrl}
-                          onChange={(e) => setImageUrl(e.target.value)}
-                        />
-                        <Upload className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
-                      </div>
+                      <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1.5">
+                        Photo / Evidence (Optional)
+                      </label>
+                      {imageUrl ? (
+                        /* Thumbnail preview */
+                        <div className="relative w-full rounded-xl overflow-hidden border border-emerald-600/40 bg-slate-800">
+                          <img
+                            src={imageUrl}
+                            alt="Selected evidence"
+                            className="w-full h-32 object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setImageUrl("")}
+                            className="absolute top-2 right-2 bg-slate-900/80 hover:bg-red-900/80 text-white rounded-full p-1 border border-slate-600 transition-colors"
+                            title="Remove photo"
+                          >
+                            ✕
+                          </button>
+                          <span className="absolute bottom-2 left-2 bg-slate-900/70 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-700/40">
+                            ✓ Photo Selected
+                          </span>
+                        </div>
+                      ) : (
+                        /* Upload button */
+                        <label className="flex flex-col items-center justify-center gap-2 w-full h-24 rounded-xl border-2 border-dashed border-slate-600 bg-slate-900 hover:border-emerald-500 hover:bg-slate-800 transition-all cursor-pointer text-center">
+                          <Upload className="h-5 w-5 text-slate-400" />
+                          <span className="text-xs text-slate-400 font-semibold">
+                            Click to upload photo<br />
+                            <span className="text-[10px] text-slate-500 font-normal">JPG, PNG, WEBP — max 10MB</span>
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            className="sr-only"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = (ev) => {
+                                setImageUrl(ev.target?.result as string);
+                              };
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                        </label>
+                      )}
                     </div>
                   </div>
 

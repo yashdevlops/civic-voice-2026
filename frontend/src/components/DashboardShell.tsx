@@ -20,6 +20,7 @@ import {
   ChevronDown,
   Search,
   Loader2,
+  Award,
 } from "lucide-react";
 import Logo from "./Logo";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/budget-proposals",label: "Budget Proposals", icon: IndianRupee },
   { href: "/dashboard/messages",        label: "Messages",         icon: MessageSquare, badge: 2 },
   { href: "/dashboard/notifications",   label: "Notifications",    icon: Bell, badge: 5 },
+  { href: "/dashboard/civic-credits",   label: "Civic Credits",    icon: Award },
 ];
 
 const BOTTOM_ITEMS = [

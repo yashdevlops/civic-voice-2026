@@ -161,7 +161,7 @@ export default function Profile() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Bengaluru"
+                    placeholder="e.g. Bhubaneswar"
                     className="civic-input px-4"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
@@ -177,7 +177,7 @@ export default function Profile() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Karnataka"
+                    placeholder="e.g. Odisha"
                     className="civic-input px-4"
                     value={state}
                     onChange={(e) => setState(e.target.value)}

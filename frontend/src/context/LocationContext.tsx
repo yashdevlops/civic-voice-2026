@@ -12,11 +12,11 @@ interface LocationContextType {
 }
 
 const DEFAULT_LOCATION: UserLocation = {
-  city: "Bengaluru",
-  state: "Karnataka",
-  lat: 12.9716,
-  lng: 77.5946,
-  label: "Bengaluru, Karnataka",
+  city: "Bhubaneswar",
+  state: "Odisha",
+  lat: 20.2961,
+  lng: 85.8245,
+  label: "Bhubaneswar, Odisha",
 };
 
 const LOCATION_STORAGE_KEY = "civicvoice_user_location";
@@ -28,22 +28,22 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   const [location, setLocationState] = useState<UserLocation>(DEFAULT_LOCATION);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Parse location string (e.g. "Bengaluru, Karnataka" or "Bhubaneswar")
+  // Parse location string (e.g. "Bhubaneswar, Odisha" or "Bhubaneswar")
   const parseLocationString = (raw: string): { city: string; state: string } => {
-    if (!raw) return { city: "Bengaluru", state: "Karnataka" };
+    if (!raw) return { city: "Bhubaneswar", state: "Odisha" };
     const parts = raw.split(",").map((s) => s.trim()).filter(Boolean);
     if (parts.length >= 2) {
       return { city: parts[0], state: parts.slice(1).join(", ") };
     } else if (parts.length === 1) {
       return { city: parts[0], state: "India" };
     }
-    return { city: "Bengaluru", state: "Karnataka" };
+    return { city: "Bhubaneswar", state: "Odisha" };
   };
 
   // Helper to build a complete UserLocation object
   const buildLocationObject = (city: string, state: string): UserLocation => {
-    const cleanCity = city.trim() || "Bengaluru";
-    const cleanState = state.trim() || "Karnataka";
+    const cleanCity = city.trim() || "Bhubaneswar";
+    const cleanState = state.trim() || "Odisha";
     const { lat, lng } = resolveLocationCoords(cleanCity, cleanState);
     return {
       city: cleanCity,

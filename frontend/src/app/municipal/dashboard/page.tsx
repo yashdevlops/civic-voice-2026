@@ -287,7 +287,7 @@ function UnifiedMunicipalDashboardContent() {
               <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                 <Building2 className="h-5 w-5" />
               </span>
-              <h1 className="text-xl font-extrabold tracking-tight">
+              <h1 className="text-xl font-extrabold tracking-tight text-white select-none">
                 Welcome, {session?.name || "Officer"}
               </h1>
               <span className="text-[10px] font-mono bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
