@@ -168,10 +168,10 @@ export default function GlassNav() {
             {/* Desktop portal links */}
             <div className="hidden md:flex items-center gap-2">
               <Link
-                href="/citizen"
+                href="/commissioner/dashboard"
                 className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
               >
-                Citizen Portal
+                Commissioner Suite
               </Link>
               <Link
                 href="/municipal/dashboard"
