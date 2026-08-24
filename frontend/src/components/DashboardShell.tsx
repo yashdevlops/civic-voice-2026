@@ -39,18 +39,18 @@ const NAV_ITEMS = [
     icon: LayoutDashboard,
     exact: true,
   },
-  { href: "/dashboard/complaints",      label: "My Complaints",    icon: FileText },
-  { href: "/dashboard/analytics",       label: "Analytics",        icon: BarChart3 },
-  { href: "/dashboard/public-works",    label: "Public Works",     icon: Wrench },
-  { href: "/dashboard/budget-proposals",label: "Budget Proposals", icon: IndianRupee },
-  { href: "/dashboard/messages",        label: "Messages",         icon: MessageSquare, badge: 2 },
-  { href: "/dashboard/notifications",   label: "Notifications",    icon: Bell, badge: 5 },
-  { href: "/dashboard/civic-credits",   label: "Civic Credits",    icon: Award },
+  { href: "/dashboard/complaints", label: "My Complaints", icon: FileText },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/public-works", label: "Public Works", icon: Wrench },
+  { href: "/dashboard/budget-proposals", label: "Budget Proposals", icon: IndianRupee },
+  { href: "/dashboard/messages", label: "Messages", icon: MessageSquare },
+  { href: "/dashboard/notifications", label: "Notifications", icon: Bell, badge: 5 },
+  { href: "/dashboard/civic-credits", label: "Civic Credits", icon: Award },
 ];
 
 const BOTTOM_ITEMS = [
-  { href: "/dashboard/profile",  label: "Profile",  icon: User },
-  { href: "/dashboard/profile",  label: "Settings", icon: Settings },
+  { href: "/dashboard/profile", label: "Profile", icon: User },
+  { href: "/dashboard/profile", label: "Settings", icon: Settings },
 ];
 
 // ── Sidebar Nav Item ─────────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
       window.removeEventListener("storage", refresh);
     };
   }, []);
-  
+
   return (
     <aside className="flex h-full w-full flex-col bg-white border-r border-slate-100">
       {/* Logo */}
@@ -196,14 +196,14 @@ function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { location } = useLocation();
   const period = useCurrentPeriod();
   const dateInfo = useDynamicDate();
-  
+
   const initials = user?.name
     ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .substring(0, 2)
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase()
     : "U";
 
   return (
