@@ -1,7 +1,7 @@
-# CivicVoice — SOAIDEATHON-S36
+# CivicVoice 
 ## Evidence-Grounded Civic Grievance Triage & Participatory Budgeting Platform
 
-*Built for SOAIDEATHON-S36 · CivicVoice by YASH DEO
+* · CivicVoice by YASH DEO
 ---
 GMAIL: yashdeo01@gmail.com
 ---
